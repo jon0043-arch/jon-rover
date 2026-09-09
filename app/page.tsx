@@ -14,6 +14,24 @@ const models = [
   { name: "Jaguar", kicker: "Distinctive design with unmistakable character." },
 ];
 
+const reviews = [
+  {
+    quote:
+      "Jon McGeehan did a great job selling me a new vehicle. Very knowledgeable and excellent communicator!",
+    source: "Customer review · December 2025",
+  },
+  {
+    quote:
+      "This is my third vehicle purchased here and the second with Jon. He was attentive and patient.",
+    source: "Customer review · April 2025",
+  },
+  {
+    quote:
+      "Scott and Jon bent over backwards to assist us. Definitely the best experience we've ever had at a dealership.",
+    source: "Customer review · June 2025",
+  },
+];
+
 export default function Home() {
   const heroRef = useRef<HTMLElement | null>(null);
   const heroImageRef = useRef<HTMLDivElement | null>(null);
@@ -330,6 +348,28 @@ export default function Home() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      </section>
+
+      <section className="reviewsSection" aria-labelledby="reviews-title">
+        <div className="reviewsInner shell">
+          <div className="reviewsTop">
+            <div>
+              <p className="eyebrow">WHAT CUSTOMERS SAY</p>
+              <h2 id="reviews-title">A better experience, in their words.</h2>
+            </div>
+            <div className="reviewStars" aria-label="Five star reviews">★★★★★</div>
+          </div>
+
+          <div className="reviewsGrid">
+            {reviews.map((review) => (
+              <article className="reviewCard" key={review.quote}>
+                <div className="reviewCardStars">★★★★★</div>
+                <blockquote>“{review.quote}”</blockquote>
+                <p>{review.source}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
