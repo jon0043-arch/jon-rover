@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./hero-position.css";
 
 export const metadata = {
   title: "Jon McGeehan | Jaguar Land Rover Willow Grove",
