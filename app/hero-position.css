@@ -1,12 +1,12 @@
 .heroCopy {
-  margin-left: max(48px, calc((100vw - 1440px) / 2 + 48px));
+  margin-left: max(20px, calc((100vw - 1440px) / 2 + 20px));
   margin-right: 0;
-  width: min(760px, calc(100% - 96px));
+  width: min(760px, calc(100% - 40px));
 }
 
 @media (max-width: 900px) {
   .heroCopy {
-    margin-left: 18px;
-    width: calc(100% - 36px);
+    margin-left: 14px;
+    width: calc(100% - 28px);
   }
 }
