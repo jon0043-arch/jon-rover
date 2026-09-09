@@ -1,12 +1,25 @@
+.nav.shell {
+  width: calc(100% - 96px);
+  max-width: none;
+  margin-left: 48px;
+  margin-right: 48px;
+}
+
 .heroCopy {
-  margin-left: max(20px, calc((100vw - 1440px) / 2 + 20px));
+  margin-left: 48px;
   margin-right: 0;
-  width: min(760px, calc(100% - 40px));
+  width: min(760px, calc(100% - 96px));
 }
 
 @media (max-width: 900px) {
+  .nav.shell {
+    width: calc(100% - 36px);
+    margin-left: 18px;
+    margin-right: 18px;
+  }
+
   .heroCopy {
-    margin-left: 14px;
-    width: calc(100% - 28px);
+    margin-left: 18px;
+    width: calc(100% - 36px);
   }
 }
