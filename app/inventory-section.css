@@ -26,14 +26,6 @@
   letter-spacing: 0.01em;
 }
 
-.inventoryQueryEcho {
-  margin: 18px 0 0;
-  max-width: 760px;
-  color: rgba(16, 21, 19, 0.62);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
 .inventoryStatus {
   font-size: 10px;
   letter-spacing: 0.16em;
@@ -104,10 +96,6 @@
   gap: 18px;
 }
 
-.inventoryPicksGrid {
-  gap: 22px;
-}
-
 .inventoryCard {
   background: #f8f5ef;
   border: 1px solid rgba(16, 21, 19, 0.12);
@@ -142,24 +130,12 @@
   position: absolute;
   left: 12px;
   top: 12px;
-  background: rgba(17, 23, 20, 0.9);
+  background: rgba(17, 23, 20, 0.92);
   color: #fff;
-  padding: 7px 9px;
+  padding: 8px 10px;
   font-size: 8px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-
-.inventoryPickBadge {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  padding: 8px 10px;
-  background: rgba(245, 240, 231, 0.94);
-  color: #111714;
-  font-size: 8px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
 }
 
 .inventoryCardBody {
@@ -200,13 +176,13 @@
   font-weight: 300;
 }
 
-.inventoryWhy {
+.whyJonPicked {
   margin-top: 22px;
-  padding: 18px 0 0;
+  padding-top: 18px;
   border-top: 1px solid rgba(16, 21, 19, 0.12);
 }
 
-.inventoryWhy span {
+.whyJonPicked > span {
   display: block;
   margin-bottom: 9px;
   color: rgba(16, 21, 19, 0.48);
@@ -214,11 +190,26 @@
   letter-spacing: 0.16em;
 }
 
-.inventoryWhy p {
+.whyJonPicked p {
   margin: 0;
-  color: rgba(16, 21, 19, 0.75);
+  color: rgba(16, 21, 19, 0.76);
   font-size: 13px;
   line-height: 1.65;
+}
+
+.inventoryFeatureRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.inventoryFeatureRow span {
+  border: 1px solid rgba(16, 21, 19, 0.12);
+  padding: 6px 8px;
+  color: rgba(16, 21, 19, 0.58);
+  font-size: 8px;
+  letter-spacing: 0.08em;
 }
 
 .inventoryActions {
@@ -250,10 +241,34 @@
 }
 
 .inventoryMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
   padding: 50px 0;
   border-top: 1px solid rgba(16, 21, 19, 0.14);
   font-size: 18px;
   color: rgba(16, 21, 19, 0.62);
+}
+
+.inventoryMessage strong {
+  color: #101513;
+  font-weight: 500;
+}
+
+.inventoryMessage span {
+  font-size: 13px;
+}
+
+.inventoryMessage button {
+  margin-top: 8px;
+  border: 0;
+  background: #111714;
+  color: #fff;
+  padding: 13px 16px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  cursor: pointer;
 }
 
 .inventorySkeletonGrid {
@@ -280,14 +295,8 @@
   cursor: pointer;
 }
 
-.inventoryTextButton {
-  padding: 0;
-}
-
-.modelCardButton {
-  width: 100%;
-  padding: 14px 0 0;
-}
+.inventoryTextButton { padding: 0; }
+.modelCardButton { width: 100%; padding: 14px 0 0; }
 
 @keyframes inventoryShimmer {
   from { background-position: 200% 0; }
@@ -296,53 +305,19 @@
 
 @media (max-width: 1000px) {
   .inventoryGrid,
-  .inventorySkeletonGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .inventoryPicksGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .inventoryControls {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  .inventorySkeletonGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .inventoryPickMode .inventoryGrid { grid-template-columns: 1fr; }
+  .inventoryControls { flex-direction: column; align-items: stretch; }
 }
 
 @media (max-width: 700px) {
-  .inventorySection {
-    padding: 80px 0 90px;
-  }
-
-  .inventoryTop {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .inventoryStatus {
-    white-space: normal;
-  }
-
+  .inventorySection { padding: 80px 0 90px; }
+  .inventoryTop { flex-direction: column; align-items: flex-start; }
+  .inventoryStatus { white-space: normal; }
   .inventoryGrid,
-  .inventorySkeletonGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .inventorySearch {
-    flex-direction: column;
-  }
-
-  .inventorySearch button {
-    min-height: 48px;
-  }
-
-  .inventoryTabs {
-    flex-wrap: wrap;
-  }
-
-  .inventoryActions {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+  .inventorySkeletonGrid { grid-template-columns: 1fr; }
+  .inventorySearch { flex-direction: column; }
+  .inventorySearch button { min-height: 48px; }
+  .inventoryTabs { flex-wrap: wrap; }
+  .inventoryActions { align-items: flex-start; flex-direction: column; }
 }
