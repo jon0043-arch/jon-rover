@@ -12,8 +12,9 @@ type Vehicle = {
   image?: string | null;
   stock?: string | null;
   exterior?: string | null;
-  pickLabel?: string | null;
-  why?: string | null;
+  features?: string[];
+  pickLabel?: string;
+  why?: string;
 };
 
 type Props = {
@@ -37,24 +38,23 @@ function miles(value: number | null) {
 
 export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 }: Props) {
   const [query, setQuery] = useState(initialQuery);
-  const [activeQuery, setActiveQuery] = useState(initialQuery);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [condition, setCondition] = useState("all");
   const [total, setTotal] = useState(0);
 
-  async function loadInventory(nextQuery: string, nextCondition: string) {
+  async function loadInventory(nextQuery = query, nextCondition = condition) {
+    const cleaned = nextQuery.trim();
     setLoading(true);
     setError("");
-    setActiveQuery(nextQuery.trim());
 
     try {
       const params = new URLSearchParams({
-        limit: nextQuery.trim() ? "3" : "9",
+        limit: cleaned ? "3" : "12",
         condition: nextCondition,
       });
-      if (nextQuery.trim()) params.set("q", nextQuery.trim());
+      if (cleaned) params.set("q", cleaned);
 
       const response = await fetch(`/api/inventory?${params.toString()}`, { cache: "no-store" });
       const data = await response.json();
@@ -76,23 +76,31 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestSignal]);
 
-  const status = useMemo(() => {
-    if (loading) return "SEARCHING WILLOW GROVE…";
-    if (error) return "INVENTORY TEMPORARILY UNAVAILABLE";
-    if (activeQuery) return vehicles.length === 3 ? "JON'S 3 PICKS" : `${vehicles.length} JON PICK${vehicles.length === 1 ? "" : "S"}`;
-    return `${total || vehicles.length} VEHICLES CONNECTED`;
-  }, [loading, error, vehicles.length, activeQuery, total]);
+  useEffect(() => {
+    loadInventory(query, condition);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [condition]);
 
-  const heading = activeQuery ? "Jon's 3 picks for you." : "Shop the actual Willow Grove inventory.";
+  const isPickMode = query.trim().length > 0;
+
+  const status = useMemo(() => {
+    if (loading) return "CHECKING WILLOW GROVE NOW…";
+    if (error) return "LIVE INVENTORY TEMPORARILY UNAVAILABLE";
+    if (isPickMode) return `${vehicles.length} OF JON'S PICKS`;
+    return `${total || vehicles.length} VEHICLES CONNECTED`;
+  }, [loading, error, vehicles.length, isPickMode, total]);
 
   return (
-    <section id="inventory" className="inventorySection">
+    <section id="inventory" className={`inventorySection ${isPickMode ? "inventoryPickMode" : ""}`}>
       <div className="inventoryInner shell">
         <div className="inventoryTop">
           <div>
-            <p className="eyebrow">LIVE WILLOW GROVE INVENTORY</p>
-            <h2>{heading}</h2>
-            {activeQuery ? <p className="inventoryQueryEcho">Based on: “{activeQuery}”</p> : null}
+            <p className="eyebrow">{isPickMode ? "JON'S 3 PICKS" : "LIVE WILLOW GROVE INVENTORY"}</p>
+            <h2>
+              {isPickMode
+                ? "Three vehicles I'd put at the top of your list."
+                : "Shop the actual inventory without leaving Jon Rover."}
+            </h2>
           </div>
           <span className="inventoryStatus">{status}</span>
         </div>
@@ -109,9 +117,9 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="3 kids, sporty, under $90k, not too huge…"
-              aria-label="Search live inventory"
+              aria-label="Tell Jon what you are looking for"
             />
-            <button type="submit">GET JON'S 3 PICKS →</button>
+            <button type="submit">{query.trim() ? "GET JON'S 3 PICKS →" : "SEARCH →"}</button>
           </form>
 
           <div className="inventoryTabs" aria-label="Inventory type">
@@ -123,10 +131,7 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
               <button
                 key={label}
                 className={condition === value ? "active" : ""}
-                onClick={() => {
-                  setCondition(value);
-                  loadInventory(query, value);
-                }}
+                onClick={() => setCondition(value)}
                 type="button"
               >
                 {label}
@@ -136,34 +141,37 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
         </div>
 
         {error ? (
-          <div className="inventoryMessage">{error}</div>
+          <div className="inventoryMessage">
+            <strong>Live inventory couldn't load.</strong>
+            <span>{error}</span>
+            <button type="button" onClick={() => loadInventory(query, condition)}>TRY AGAIN →</button>
+          </div>
         ) : loading ? (
           <div className="inventorySkeletonGrid">
-            {Array.from({ length: activeQuery ? 3 : 6 }).map((_, index) => (
+            {Array.from({ length: isPickMode ? 3 : 6 }).map((_, index) => (
               <div className="inventorySkeleton" key={index} />
             ))}
           </div>
         ) : vehicles.length === 0 ? (
           <div className="inventoryMessage">
-            I couldn&apos;t find a useful match for that request. Try changing the budget or leaving the New / Pre-Owned filter on ALL.
+            No strong match yet. Try something like “3 kids, sporty, under $90k, not too huge.”
           </div>
         ) : (
-          <div className={`inventoryGrid ${activeQuery ? "inventoryPicksGrid" : ""}`}>
-            {vehicles.map((vehicle) => {
+          <div className="inventoryGrid">
+            {vehicles.map((vehicle, index) => {
               const sms = encodeURIComponent(
                 `Hi Jon, I'm interested in the ${vehicle.title} — VIN ${vehicle.vin}${vehicle.stock ? `, stock ${vehicle.stock}` : ""}.`
               );
 
               return (
-                <article className={`inventoryCard ${vehicle.pickLabel ? "inventoryPickCard" : ""}`} key={vehicle.vin}>
+                <article className={`inventoryCard ${isPickMode ? "inventoryPickCard" : ""}`} key={vehicle.vin}>
                   <div className="inventoryCardImage">
                     {vehicle.image ? (
                       <img src={vehicle.image} alt={vehicle.title} loading="lazy" />
                     ) : (
                       <img src="/hero-defender.png" alt={vehicle.title} loading="lazy" />
                     )}
-                    <span>{vehicle.condition || "AVAILABLE"}</span>
-                    {vehicle.pickLabel ? <strong className="inventoryPickBadge">{vehicle.pickLabel}</strong> : null}
+                    <span>{vehicle.pickLabel || vehicle.condition || "AVAILABLE"}</span>
                   </div>
 
                   <div className="inventoryCardBody">
@@ -171,17 +179,26 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
                       <span>{vehicle.exterior || "JLR WILLOW GROVE"}</span>
                       {vehicle.stock ? <span>STOCK {vehicle.stock}</span> : null}
                     </div>
+
                     <h3>{vehicle.title}</h3>
+
                     <div className="inventoryFacts">
                       <span>{miles(vehicle.mileage)}</span>
                       <span>VIN {vehicle.vin.slice(-6)}</span>
                     </div>
+
                     <div className="inventoryPrice">{money(vehicle.price)}</div>
 
-                    {vehicle.why ? (
-                      <div className="inventoryWhy">
+                    {isPickMode ? (
+                      <div className="whyJonPicked">
                         <span>WHY JON PICKED IT</span>
-                        <p>{vehicle.why}</p>
+                        <p>{vehicle.why || `Pick ${index + 1} based on what you told me matters most.`}</p>
+                      </div>
+                    ) : null}
+
+                    {vehicle.features?.length ? (
+                      <div className="inventoryFeatureRow">
+                        {vehicle.features.slice(0, 3).map((feature) => <span key={feature}>{feature}</span>)}
                       </div>
                     ) : null}
 
