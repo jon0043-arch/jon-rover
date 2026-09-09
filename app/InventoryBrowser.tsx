@@ -43,15 +43,19 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
   const [error, setError] = useState("");
   const [condition, setCondition] = useState("all");
   const [total, setTotal] = useState(0);
+  const [aiPowered, setAiPowered] = useState(false);
+  const [missingAiKey, setMissingAiKey] = useState(false);
 
   async function loadInventory(nextQuery = query, nextCondition = condition) {
     const cleaned = nextQuery.trim();
     setLoading(true);
     setError("");
+    setAiPowered(false);
+    setMissingAiKey(false);
 
     try {
       const params = new URLSearchParams({
-        limit: cleaned ? "3" : "12",
+        limit: cleaned ? "15" : "12",
         condition: nextCondition,
       });
       if (cleaned) params.set("q", cleaned);
@@ -60,8 +64,38 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "Could not load inventory");
 
-      setVehicles(data.vehicles || []);
       setTotal(data.total || 0);
+      const candidates: Vehicle[] = data.vehicles || [];
+
+      if (!cleaned) {
+        setVehicles(candidates);
+        return;
+      }
+
+      if (candidates.length === 0) {
+        setVehicles([]);
+        return;
+      }
+
+      try {
+        const recommendationResponse = await fetch("/api/recommend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: cleaned, vehicles: candidates }),
+        });
+        const recommendationData = await recommendationResponse.json();
+
+        if (!recommendationResponse.ok) {
+          throw new Error(recommendationData?.error || "AI recommendation failed");
+        }
+
+        setVehicles((recommendationData.picks || candidates.slice(0, 3)).slice(0, 3));
+        setAiPowered(Boolean(recommendationData.ai));
+        setMissingAiKey(Boolean(recommendationData.missingKey));
+      } catch (recommendationError) {
+        console.error(recommendationError);
+        setVehicles(candidates.slice(0, 3));
+      }
     } catch (err) {
       setVehicles([]);
       setError(err instanceof Error ? err.message : "Could not load inventory");
@@ -84,11 +118,13 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
   const isPickMode = query.trim().length > 0;
 
   const status = useMemo(() => {
-    if (loading) return "CHECKING WILLOW GROVE NOW…";
+    if (loading) return isPickMode ? "JON IS CHECKING THE INVENTORY…" : "CHECKING WILLOW GROVE NOW…";
     if (error) return "LIVE INVENTORY TEMPORARILY UNAVAILABLE";
+    if (isPickMode && aiPowered) return `${vehicles.length} AI-CURATED JON'S PICKS`;
+    if (isPickMode && missingAiKey) return `${vehicles.length} JON'S PICKS · AI KEY NEEDED`;
     if (isPickMode) return `${vehicles.length} OF JON'S PICKS`;
     return `${total || vehicles.length} VEHICLES CONNECTED`;
-  }, [loading, error, vehicles.length, isPickMode, total]);
+  }, [loading, error, vehicles.length, isPickMode, total, aiPowered, missingAiKey]);
 
   return (
     <section id="inventory" className={`inventorySection ${isPickMode ? "inventoryPickMode" : ""}`}>
@@ -101,6 +137,9 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
                 ? "Three vehicles I'd put at the top of your list."
                 : "Shop the actual inventory without leaving Jon Rover."}
             </h2>
+            {isPickMode && aiPowered ? (
+              <p className="inventoryQueryEcho">I matched your request against the live inventory and narrowed it to these three.</p>
+            ) : null}
           </div>
           <span className="inventoryStatus">{status}</span>
         </div>
@@ -157,7 +196,7 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
             No strong match yet. Try something like “3 kids, sporty, under $90k, not too huge.”
           </div>
         ) : (
-          <div className="inventoryGrid">
+          <div className={`inventoryGrid ${isPickMode ? "inventoryPicksGrid" : ""}`}>
             {vehicles.map((vehicle, index) => {
               const sms = encodeURIComponent(
                 `Hi Jon, I'm interested in the ${vehicle.title} — VIN ${vehicle.vin}${vehicle.stock ? `, stock ${vehicle.stock}` : ""}.`
@@ -172,6 +211,7 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
                       <img src="/hero-defender.png" alt={vehicle.title} loading="lazy" />
                     )}
                     <span>{vehicle.pickLabel || vehicle.condition || "AVAILABLE"}</span>
+                    {isPickMode ? <div className="inventoryPickBadge">0{index + 1}</div> : null}
                   </div>
 
                   <div className="inventoryCardBody">
@@ -190,7 +230,7 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
                     <div className="inventoryPrice">{money(vehicle.price)}</div>
 
                     {isPickMode ? (
-                      <div className="whyJonPicked">
+                      <div className="inventoryWhy">
                         <span>WHY JON PICKED IT</span>
                         <p>{vehicle.why || `Pick ${index + 1} based on what you told me matters most.`}</p>
                       </div>
