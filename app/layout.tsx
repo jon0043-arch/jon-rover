@@ -1,6 +1,7 @@
 import "./globals.css";
 import "./hero-position.css";
 import "./about-section.css";
+import "./reviews-section.css";
 
 export const metadata = {
   title: "Jon Rover | Jaguar Land Rover Willow Grove",
