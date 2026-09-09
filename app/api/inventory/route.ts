@@ -143,6 +143,23 @@ function scoreVehicles(vehicles: Vehicle[], query: string, condition: string) {
     .sort((a, b) => b.score - a.score || (a.vehicle.price ?? Infinity) - (b.vehicle.price ?? Infinity));
 }
 
+async function fetchInventoryPage(page: number) {
+  const url = new URL(INVENTORY_URL);
+  url.searchParams.set("limit", "100");
+  url.searchParams.set("page", String(page));
+
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; JonRoverInventory/1.0)",
+      Accept: "text/html,application/xhtml+xml",
+    },
+    next: { revalidate: 300 },
+  });
+
+  if (!response.ok) throw new Error(`Inventory page ${page} unavailable`);
+  return response.text();
+}
+
 async function enrichVehicle(vehicle: Vehicle): Promise<Vehicle> {
   try {
     const response = await fetch(vehicle.url, {
@@ -183,22 +200,17 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Math.max(Number(searchParams.get("limit") ?? 12) || 12, 1), 18);
 
   try {
-    const response = await fetch(INVENTORY_URL, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; JonRoverInventory/1.0)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-      next: { revalidate: 300 },
-    });
+    const firstHtml = await fetchInventoryPage(1);
+    const firstText = stripTags(firstHtml);
+    const total = Number(firstText.match(/(\d+)\s+(?:total\s+)?vehicles/i)?.[1] ?? firstText.match(/(\d+)\s+vehicles found/i)?.[1] ?? 0);
+    const pageCount = Math.min(Number(firstText.match(/Page\s+1\s+of\s+(\d+)/i)?.[1] ?? 1), 6);
 
-    if (!response.ok) {
-      return NextResponse.json({ error: "Inventory source is temporarily unavailable." }, { status: 502 });
-    }
+    const remainingPages = pageCount > 1
+      ? await Promise.all(Array.from({ length: pageCount - 1 }, (_, index) => fetchInventoryPage(index + 2)))
+      : [];
 
-    const html = await response.text();
-    const pageText = stripTags(html);
-    const total = Number(pageText.match(/(\d+)\s+vehicles found/i)?.[1] ?? 0);
-    let vehicles = parseInventory(html);
+    const allVehicles = [firstHtml, ...remainingPages].flatMap(parseInventory);
+    let vehicles = [...new Map(allVehicles.map((vehicle) => [vehicle.vin, vehicle])).values()];
 
     if (condition === "new") {
       vehicles = vehicles.filter((vehicle) => vehicle.condition.toLowerCase() === "new");
@@ -212,6 +224,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       total: total || vehicles.length,
+      indexed: vehicles.length,
       count: enriched.length,
       query,
       condition,
