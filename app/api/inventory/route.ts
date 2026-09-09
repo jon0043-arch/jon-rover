@@ -18,13 +18,7 @@ type Vehicle = {
   searchText?: string;
 };
 
-function moneyToNumber(value?: string | null) {
-  if (!value) return null;
-  const n = Number(value.replace(/[^0-9]/g, ""));
-  return Number.isFinite(n) ? n : null;
-}
-
-function mileageToNumber(value?: string | null) {
+function num(value?: string | null) {
   if (!value) return null;
   const n = Number(value.replace(/[^0-9]/g, ""));
   return Number.isFinite(n) ? n : null;
@@ -49,29 +43,22 @@ async function fetchReader(target: string) {
   return response.text();
 }
 
+// Parse each inventory record as one unit so title / condition / miles / price / VIN
+// can never drift into a neighboring vehicle.
 function parseReaderInventory(text: string): Vehicle[] {
   const records: Vehicle[] = [];
-  const vinRegex = /VIN:\s*([A-HJ-NPR-Z0-9]{17})/gi;
+  const pattern = /\[([^\]]*(?:19|20)\d{2}[^\]]*)\]\((https?:\/\/[^)]+)\)\s*(?:\r?\n)+\s*(Certified Used|Used|New)\s*(?:\r?\n)+\s*([\d,]+)\s+miles?\s*(?:\r?\n)+\s*\$([\d,]+)\s*(?:\r?\n)+\s*VIN:\s*([A-HJ-NPR-Z0-9]{17})/gi;
+
   let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text))) {
+    const title = match[1].replace(/\s+/g, " ").trim();
+    const url = normalizeUrl(match[2]);
+    const condition = match[3].trim();
+    const mileage = num(match[4]);
+    const price = num(match[5]);
+    const vin = match[6].toUpperCase();
 
-  while ((match = vinRegex.exec(text))) {
-    const vin = match[1].toUpperCase();
     if (records.some((v) => v.vin === vin)) continue;
-
-    const start = Math.max(0, match.index - 1200);
-    const end = Math.min(text.length, match.index + 900);
-    const block = text.slice(start, end);
-
-    const titleLinks = [...block.matchAll(/\[([^\]]*(?:19|20)\d{2}[^\]]*)\]\((https?:\/\/[^)]+)\)/gi)];
-    const titleLink = titleLinks.at(-1);
-    if (!titleLink) continue;
-
-    const title = titleLink[1].replace(/\s+/g, " ").trim();
-    if (!/\b(?:19|20)\d{2}\b/.test(title)) continue;
-
-    const condition = block.match(/\b(Certified Used|Used|New)\b/i)?.[1] ?? "";
-    const mileage = mileageToNumber(block.match(/([\d,]+)\s+miles?/i)?.[1]);
-    const price = moneyToNumber(block.match(/\$([\d,]+)/)?.[1]);
 
     records.push({
       title,
@@ -79,8 +66,8 @@ function parseReaderInventory(text: string): Vehicle[] {
       mileage,
       price,
       vin,
-      url: normalizeUrl(titleLink[2]),
-      searchText: block.toLowerCase(),
+      url,
+      searchText: `${title} ${condition}`.toLowerCase(),
     });
   }
 
@@ -95,47 +82,47 @@ function parseBudget(query: string) {
   return Number.isFinite(n) ? n : null;
 }
 
+function requestedModel(query: string) {
+  const q = query.toLowerCase();
+  if (/range rover sport/.test(q)) return "range rover sport";
+  if (/range rover velar|\bvelar\b/.test(q)) return "velar";
+  if (/range rover evoque|\bevoque\b/.test(q)) return "evoque";
+  if (/defender 130/.test(q)) return "defender 130";
+  if (/defender 110/.test(q)) return "defender 110";
+  if (/defender 90/.test(q)) return "defender 90";
+  if (/\bdefender\b/.test(q)) return "defender";
+  if (/discovery sport/.test(q)) return "discovery sport";
+  if (/\bdiscovery\b/.test(q)) return "discovery";
+  if (/f[- ]?pace/.test(q)) return "f-pace";
+  if (/\bjaguar\b/.test(q)) return "jaguar";
+  if (/\brange rover\b/.test(q)) return "range rover";
+  return null;
+}
+
+function modelMatches(vehicle: Vehicle, model: string) {
+  const t = vehicle.title.toLowerCase();
+  if (model === "range rover") return t.includes("range rover") && !t.includes("sport") && !t.includes("velar") && !t.includes("evoque");
+  if (model === "f-pace") return t.includes("f-pace") || t.includes("f pace");
+  if (model === "jaguar") return t.includes("jaguar");
+  return t.includes(model);
+}
+
 function scoreVehicle(vehicle: Vehicle, query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return 1;
 
-  const hay = `${vehicle.title} ${vehicle.condition} ${vehicle.searchText ?? ""}`.toLowerCase();
+  const hay = `${vehicle.title} ${vehicle.condition}`.toLowerCase();
   let score = 0;
-
   const budget = parseBudget(q);
+
   if (budget != null && vehicle.price != null) {
-    score += vehicle.price <= budget ? 20 : vehicle.price - budget <= 5000 ? 2 : -20;
+    if (vehicle.price <= budget) score += 20;
+    else if (vehicle.price <= budget + 5000) score += 1;
+    else score -= 30;
   }
 
-  const modelRules: Array<[RegExp, string]> = [
-    [/range rover sport/i, "range rover sport"],
-    [/defender 130/i, "defender 130"],
-    [/defender 110/i, "defender 110"],
-    [/defender 90/i, "defender 90"],
-    [/velar/i, "velar"],
-    [/evoque/i, "evoque"],
-    [/discovery sport/i, "discovery sport"],
-    [/\bdiscovery\b/i, "discovery"],
-    [/f[- ]?pace/i, "f-pace"],
-    [/\bjaguar\b/i, "jaguar"],
-    [/\bdefender\b/i, "defender"],
-    [/\brange rover\b/i, "range rover"],
-  ];
-
-  for (const [rule, token] of modelRules) {
-    if (!rule.test(q)) continue;
-    if (token === "range rover") {
-      score += hay.includes("range rover") && !hay.includes("sport") && !hay.includes("velar") && !hay.includes("evoque") ? 30 : -12;
-    } else if (token === "f-pace") {
-      score += hay.includes("f-pace") || hay.includes("f pace") ? 30 : -12;
-    } else {
-      score += hay.includes(token) ? 30 : -12;
-    }
-    break;
-  }
-
-  if (/\bnew\b/i.test(q)) score += vehicle.condition.toLowerCase() === "new" ? 8 : -8;
-  if (/used|pre[- ]?owned|certified|cpo/i.test(q)) score += vehicle.condition.toLowerCase() !== "new" ? 8 : -8;
+  if (/\bnew\b/i.test(q)) score += vehicle.condition.toLowerCase() === "new" ? 8 : -20;
+  if (/used|pre[- ]?owned|certified|cpo/i.test(q)) score += vehicle.condition.toLowerCase() !== "new" ? 8 : -20;
 
   const lifestyle: Array<[RegExp, Record<string, number>]> = [
     [/sporty|performance|fun to drive|quick|fast/i, { "range rover sport": 10, "f-pace": 10, velar: 6, evoque: 4, defender: 2 }],
@@ -185,44 +172,36 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(Math.max(Number(request.nextUrl.searchParams.get("limit") ?? 12) || 12, 1), 18);
 
   try {
-    const pageUrls = [
-      INVENTORY_URL,
-      `${INVENTORY_URL}?page=2`,
-      `${INVENTORY_URL}?page=3`,
-    ];
-
-    const texts = await Promise.all(
-      pageUrls.map(async (url) => {
-        try {
-          return await fetchReader(url);
-        } catch {
-          return "";
-        }
-      })
-    );
+    const pageUrls = [INVENTORY_URL, `${INVENTORY_URL}?page=2`, `${INVENTORY_URL}?page=3`];
+    const texts = await Promise.all(pageUrls.map(async (url) => {
+      try { return await fetchReader(url); } catch { return ""; }
+    }));
 
     const parsed = texts.flatMap(parseReaderInventory);
-    const unique = Array.from(new Map(parsed.map((v) => [v.vin, v])).values());
+    let unique = Array.from(new Map(parsed.map((v) => [v.vin, v])).values());
 
     if (unique.length === 0) {
-      return NextResponse.json(
-        { error: "Willow Grove inventory could not be read right now.", vehicles: [], count: 0 },
-        { status: 502 }
-      );
+      return NextResponse.json({ error: "Willow Grove inventory could not be read right now.", vehicles: [], count: 0 }, { status: 502 });
     }
 
-    let filtered = unique;
-    if (condition === "new") filtered = filtered.filter((v) => v.condition.toLowerCase() === "new");
-    if (condition === "used") filtered = filtered.filter((v) => v.condition.toLowerCase() !== "new");
+    if (condition === "new") unique = unique.filter((v) => v.condition.toLowerCase() === "new");
+    if (condition === "used") unique = unique.filter((v) => v.condition.toLowerCase() !== "new");
 
-    const ranked = filtered
+    // A specific model request is a hard constraint. If someone types Defender,
+    // only Defenders are candidates for Jon's picks.
+    const model = requestedModel(q);
+    let candidates = model ? unique.filter((v) => modelMatches(v, model)) : unique;
+
+    // Only fall back beyond that model if the source truly contains no such vehicles.
+    if (model && candidates.length === 0) candidates = unique;
+
+    const ranked = candidates
       .map((vehicle) => ({ vehicle, score: scoreVehicle(vehicle, q) }))
       .sort((a, b) => b.score - a.score || (a.vehicle.price ?? Infinity) - (b.vehicle.price ?? Infinity))
       .slice(0, limit)
       .map(({ vehicle }) => vehicle);
 
     const enriched = await Promise.all(ranked.map(enrichVehicle));
-
     const totalMatch = texts.join("\n").match(/([\d,]+)\s+vehicles found/i)?.[1];
     const total = totalMatch ? Number(totalMatch.replace(/,/g, "")) : unique.length;
 
@@ -233,7 +212,7 @@ export async function GET(request: NextRequest) {
       condition,
       vehicles: enriched,
       source: "Land Rover Willow Grove",
-      syncMethod: "reader",
+      syncMethod: "reader-strict-records",
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {
