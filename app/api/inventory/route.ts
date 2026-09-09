@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BASE_URL = "https://www.landroverwillowgrove.com";
-const INVENTORY_URL = `${BASE_URL}/llm/inventory/`;
+const DEALER_BASE = "https://www.landroverwillowgrove.com";
+const INVENTORY_URL = `${DEALER_BASE}/llm/inventory/`;
+const READER_PREFIX = "https://r.jina.ai/https://";
 
 type Vehicle = {
   title: string;
@@ -14,264 +15,229 @@ type Vehicle = {
   stock?: string | null;
   exterior?: string | null;
   features?: string[];
+  searchText?: string;
 };
 
-function decodeEntities(value: string) {
-  return value
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
+function moneyToNumber(value?: string | null) {
+  if (!value) return null;
+  const n = Number(value.replace(/[^0-9]/g, ""));
+  return Number.isFinite(n) ? n : null;
 }
 
-function stripTags(value: string) {
-  return decodeEntities(
-    value
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-  );
+function mileageToNumber(value?: string | null) {
+  if (!value) return null;
+  const n = Number(value.replace(/[^0-9]/g, ""));
+  return Number.isFinite(n) ? n : null;
 }
 
-function absoluteUrl(href: string) {
-  if (!href) return BASE_URL;
-  if (href.startsWith("http://") || href.startsWith("https://")) return href;
-  if (href.startsWith("//")) return `https:${href}`;
-  return `${BASE_URL}${href.startsWith("/") ? href : `/${href}`}`;
+function normalizeUrl(value?: string | null) {
+  if (!value) return INVENTORY_URL;
+  if (value.startsWith("http")) return value;
+  return `${DEALER_BASE}${value.startsWith("/") ? value : `/${value}`}`;
 }
 
-function parseInventoryPage(html: string): Vehicle[] {
-  const text = stripTags(html);
-  const links = [
-    ...html.matchAll(
-      /<a\b[^>]*href=["']([^"']+)["'][^>]*>\s*View\s+Full\s+Listing(?:\s*→)?\s*<\/a>/gi
-    ),
-  ].map((match) => absoluteUrl(match[1]));
-
-  const vehicles: Vehicle[] = [];
-  const pattern = /((?:19|20)\d{2}\s+(?:(?:LAND ROVER|Land Rover|JAGUAR|Jaguar)\s+)?[^$]{3,150}?)\s+(Certified Used|Used|New)\s+([\d,]+)\s+miles?\s+\$([\d,]+)\s+VIN:\s*([A-HJ-NPR-Z0-9]{17})/gi;
-
-  let match: RegExpExecArray | null;
-  let index = 0;
-  while ((match = pattern.exec(text))) {
-    const title = match[1].replace(/\s+/g, " ").trim();
-    const condition = match[2].trim();
-    const mileage = Number(match[3].replace(/,/g, ""));
-    const price = Number(match[4].replace(/,/g, ""));
-    const vin = match[5].toUpperCase();
-
-    vehicles.push({
-      title,
-      condition,
-      mileage: Number.isFinite(mileage) ? mileage : null,
-      price: Number.isFinite(price) ? price : null,
-      vin,
-      url: links[index] || INVENTORY_URL,
-    });
-    index += 1;
-  }
-
-  return vehicles;
+function readerUrl(target: string) {
+  return `${READER_PREFIX}${target.replace(/^https:\/\//, "")}`;
 }
 
-async function fetchInventoryPage(type: "new" | "used", page: number) {
-  const url = new URL(INVENTORY_URL);
-  url.searchParams.set("type", type);
-  if (page > 1) url.searchParams.set("page", String(page));
-
-  const response = await fetch(url, {
+async function fetchReader(target: string) {
+  const response = await fetch(readerUrl(target), {
     cache: "no-store",
-    headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; JonRover/1.0; +https://jonrover.com)",
-      Accept: "text/html,application/xhtml+xml",
-    },
+    headers: { Accept: "text/plain" },
   });
-
-  if (!response.ok) {
-    throw new Error(`Willow Grove returned ${response.status}`);
-  }
-
+  if (!response.ok) throw new Error(`Reader returned ${response.status}`);
   return response.text();
 }
 
-function extractBudget(query: string) {
-  const match = query.match(
-    /(?:under|below|less than|max(?:imum)?|up to|no more than)\s*\$?\s*([\d,.]+)\s*(k)?/i
-  );
-  if (!match) return null;
-  let value = Number(match[1].replace(/,/g, ""));
-  if (match[2]) value *= 1000;
-  return Number.isFinite(value) ? value : null;
+function parseReaderInventory(text: string): Vehicle[] {
+  const records: Vehicle[] = [];
+  const vinRegex = /VIN:\s*([A-HJ-NPR-Z0-9]{17})/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = vinRegex.exec(text))) {
+    const vin = match[1].toUpperCase();
+    if (records.some((v) => v.vin === vin)) continue;
+
+    const start = Math.max(0, match.index - 1200);
+    const end = Math.min(text.length, match.index + 900);
+    const block = text.slice(start, end);
+
+    const titleLinks = [...block.matchAll(/\[([^\]]*(?:19|20)\d{2}[^\]]*)\]\((https?:\/\/[^)]+)\)/gi)];
+    const titleLink = titleLinks.at(-1);
+    if (!titleLink) continue;
+
+    const title = titleLink[1].replace(/\s+/g, " ").trim();
+    if (!/\b(?:19|20)\d{2}\b/.test(title)) continue;
+
+    const condition = block.match(/\b(Certified Used|Used|New)\b/i)?.[1] ?? "";
+    const mileage = mileageToNumber(block.match(/([\d,]+)\s+miles?/i)?.[1]);
+    const price = moneyToNumber(block.match(/\$([\d,]+)/)?.[1]);
+
+    records.push({
+      title,
+      condition,
+      mileage,
+      price,
+      vin,
+      url: normalizeUrl(titleLink[2]),
+      searchText: block.toLowerCase(),
+    });
+  }
+
+  return records;
+}
+
+function parseBudget(query: string) {
+  const m = query.match(/(?:under|below|less than|max(?:imum)?|up to|no more than)\s*\$?\s*([\d,.]+)\s*(k)?/i);
+  if (!m) return null;
+  let n = Number(m[1].replace(/,/g, ""));
+  if (m[2]) n *= 1000;
+  return Number.isFinite(n) ? n : null;
 }
 
 function scoreVehicle(vehicle: Vehicle, query: string) {
-  if (!query.trim()) return 0;
+  const q = query.trim().toLowerCase();
+  if (!q) return 1;
 
-  const q = query.toLowerCase();
-  const title = vehicle.title.toLowerCase();
+  const hay = `${vehicle.title} ${vehicle.condition} ${vehicle.searchText ?? ""}`.toLowerCase();
   let score = 0;
 
-  const modelTerms = [
-    "range rover sport",
-    "range rover velar",
-    "range rover evoque",
-    "range rover",
-    "defender 130",
-    "defender 110",
-    "defender 90",
-    "defender",
-    "discovery sport",
-    "discovery",
-    "f-pace",
-    "f pace",
-    "jaguar",
+  const budget = parseBudget(q);
+  if (budget != null && vehicle.price != null) {
+    score += vehicle.price <= budget ? 20 : vehicle.price - budget <= 5000 ? 2 : -20;
+  }
+
+  const modelRules: Array<[RegExp, string]> = [
+    [/range rover sport/i, "range rover sport"],
+    [/defender 130/i, "defender 130"],
+    [/defender 110/i, "defender 110"],
+    [/defender 90/i, "defender 90"],
+    [/velar/i, "velar"],
+    [/evoque/i, "evoque"],
+    [/discovery sport/i, "discovery sport"],
+    [/\bdiscovery\b/i, "discovery"],
+    [/f[- ]?pace/i, "f-pace"],
+    [/\bjaguar\b/i, "jaguar"],
+    [/\bdefender\b/i, "defender"],
+    [/\brange rover\b/i, "range rover"],
   ];
 
-  for (const term of modelTerms) {
-    if (q.includes(term)) {
-      const normalized = term === "f pace" ? "f-pace" : term;
-      if (title.includes(normalized) || (normalized === "f-pace" && title.includes("f pace"))) score += 40;
-      else score -= 12;
-      break;
+  for (const [rule, token] of modelRules) {
+    if (!rule.test(q)) continue;
+    if (token === "range rover") {
+      score += hay.includes("range rover") && !hay.includes("sport") && !hay.includes("velar") && !hay.includes("evoque") ? 30 : -12;
+    } else if (token === "f-pace") {
+      score += hay.includes("f-pace") || hay.includes("f pace") ? 30 : -12;
+    } else {
+      score += hay.includes(token) ? 30 : -12;
+    }
+    break;
+  }
+
+  if (/\bnew\b/i.test(q)) score += vehicle.condition.toLowerCase() === "new" ? 8 : -8;
+  if (/used|pre[- ]?owned|certified|cpo/i.test(q)) score += vehicle.condition.toLowerCase() !== "new" ? 8 : -8;
+
+  const lifestyle: Array<[RegExp, Record<string, number>]> = [
+    [/sporty|performance|fun to drive|quick|fast/i, { "range rover sport": 10, "f-pace": 10, velar: 6, evoque: 4, defender: 2 }],
+    [/kids?|family|car seats?/i, { "defender 110": 8, "defender 130": 10, discovery: 10, "range rover sport": 6, "f-pace": 4 }],
+    [/not too (?:big|huge)|don'?t want .*?(?:big|huge)|smaller|compact|easy to park/i, { evoque: 10, velar: 9, "f-pace": 8, "range rover sport": 4, "defender 130": -12, discovery: -5 }],
+    [/luxury|comfortable|premium|quiet/i, { "range rover": 12, "range rover sport": 8, velar: 7, "f-pace": 6 }],
+    [/off[- ]?road|rugged|camping|outdoors|adventure/i, { defender: 12, discovery: 6 }],
+  ];
+
+  for (const [rule, weights] of lifestyle) {
+    if (!rule.test(q)) continue;
+    for (const [token, points] of Object.entries(weights)) {
+      if (hay.includes(token)) score += points;
     }
   }
 
-  const budget = extractBudget(q);
-  if (budget && vehicle.price != null) {
-    if (vehicle.price <= budget) score += 18;
-    else if (vehicle.price <= budget + 5000) score += 2;
-    else score -= 20;
-  }
-
-  if (/\bnew\b/.test(q)) score += vehicle.condition.toLowerCase() === "new" ? 8 : -15;
-  if (/\bused\b|\bpre[- ]?owned\b|\bcpo\b|\bcertified\b/.test(q)) {
-    score += vehicle.condition.toLowerCase() === "new" ? -15 : 8;
-  }
-
-  const words = q.match(/[a-z0-9-]+/g) || [];
-  const stop = new Set([
-    "want", "need", "looking", "with", "under", "below", "than", "something", "vehicle",
-    "three", "kids", "family", "sporty", "luxury", "roomy", "smaller", "huge", "large",
-    "new", "used", "have", "dont", "don't", "anything", "around", "about", "prefer",
-  ]);
-  for (const word of words) {
-    if (word.length > 3 && !stop.has(word) && title.includes(word)) score += 2;
+  const colors = ["black", "white", "green", "blue", "red", "silver", "gray", "grey", "brown", "bronze", "gold"];
+  for (const color of colors) {
+    if (new RegExp(`\\b${color}\\b`, "i").test(q) && hay.includes(color)) score += 6;
   }
 
   return score;
 }
 
 async function enrichVehicle(vehicle: Vehicle): Promise<Vehicle> {
-  if (!vehicle.url || vehicle.url === INVENTORY_URL) return vehicle;
-
   try {
-    const response = await fetch(vehicle.url, {
-      cache: "no-store",
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; JonRover/1.0; +https://jonrover.com)",
-        Accept: "text/html,application/xhtml+xml",
-      },
-    });
-    if (!response.ok) return vehicle;
+    const text = await fetchReader(vehicle.url);
+    const image = text.match(/!\[[^\]]*\]\((https?:\/\/[^)]+\.(?:jpg|jpeg|png|webp)(?:\?[^)]*)?)\)/i)?.[1] ?? null;
+    const stock = text.match(/Stock(?: Number| #|:)?\s*[:#]?\s*([A-Z0-9-]{4,})/i)?.[1] ?? null;
+    const exterior = text.match(/Exterior(?: Color)?\s*[:|]\s*([^\n|]{2,60})/i)?.[1]?.trim() ?? null;
 
-    const html = await response.text();
-    const text = stripTags(html);
+    const features = Array.from(new Set(
+      [...text.matchAll(/(?:Feature|Equipment|Package)\s*[:|]\s*([^\n|]{3,80})/gi)]
+        .map((m) => m[1].trim())
+        .filter(Boolean)
+    )).slice(0, 8);
 
-    const ogImage =
-      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
-      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1] ||
-      null;
-
-    const stock = text.match(/Stock:\s*([A-Z0-9-]+)/i)?.[1] || null;
-    const exterior =
-      text.match(/Exterior(?: Color)?:\s*([^|]{2,60}?)(?=\s+(?:Interior|Drivetrain|Transmission|Engine|Stock|VIN):)/i)?.[1]?.trim() ||
-      null;
-
-    const featureCandidates = [
-      "Third Row Seat",
-      "Panoramic Roof",
-      "Heated Seats",
-      "Ventilated Seats",
-      "Adaptive Cruise Control",
-      "Head-Up Display",
-      "Tow Package",
-      "Meridian",
-      "Black Exterior Pack",
-    ].filter((feature) => text.toLowerCase().includes(feature.toLowerCase()));
-
-    return {
-      ...vehicle,
-      image: ogImage ? decodeEntities(ogImage) : null,
-      stock,
-      exterior,
-      features: featureCandidates.slice(0, 6),
-    };
+    return { ...vehicle, image, stock, exterior, features };
   } catch {
     return vehicle;
   }
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const query = (searchParams.get("q") || "").trim();
-  const condition = (searchParams.get("condition") || "all").toLowerCase();
-  const limit = Math.min(Math.max(Number(searchParams.get("limit") || 12), 1), 18);
+  const q = request.nextUrl.searchParams.get("q") ?? "";
+  const condition = (request.nextUrl.searchParams.get("condition") ?? "all").toLowerCase();
+  const limit = Math.min(Math.max(Number(request.nextUrl.searchParams.get("limit") ?? 12) || 12, 1), 18);
 
   try {
-    const types: ("new" | "used")[] = condition === "new" ? ["new"] : condition === "used" ? ["used"] : ["new", "used"];
-    const requests: Promise<string>[] = [];
+    const pageUrls = [
+      INVENTORY_URL,
+      `${INVENTORY_URL}?page=2`,
+      `${INVENTORY_URL}?page=3`,
+    ];
 
-    for (const type of types) {
-      for (let page = 1; page <= 3; page += 1) {
-        requests.push(fetchInventoryPage(type, page));
-      }
-    }
+    const texts = await Promise.all(
+      pageUrls.map(async (url) => {
+        try {
+          return await fetchReader(url);
+        } catch {
+          return "";
+        }
+      })
+    );
 
-    const pages = await Promise.allSettled(requests);
-    const parsed = pages
-      .filter((result): result is PromiseFulfilledResult<string> => result.status === "fulfilled")
-      .flatMap((result) => parseInventoryPage(result.value));
-
-    const unique = Array.from(new Map(parsed.map((vehicle) => [vehicle.vin, vehicle])).values());
+    const parsed = texts.flatMap(parseReaderInventory);
+    const unique = Array.from(new Map(parsed.map((v) => [v.vin, v])).values());
 
     if (unique.length === 0) {
       return NextResponse.json(
-        {
-          error: "Willow Grove loaded, but no vehicle records could be read. The inventory format may have changed.",
-          total: 0,
-          count: 0,
-          vehicles: [],
-        },
+        { error: "Willow Grove inventory could not be read right now.", vehicles: [], count: 0 },
         { status: 502 }
       );
     }
 
-    const ranked = unique
-      .map((vehicle) => ({ vehicle, score: scoreVehicle(vehicle, query) }))
+    let filtered = unique;
+    if (condition === "new") filtered = filtered.filter((v) => v.condition.toLowerCase() === "new");
+    if (condition === "used") filtered = filtered.filter((v) => v.condition.toLowerCase() !== "new");
+
+    const ranked = filtered
+      .map((vehicle) => ({ vehicle, score: scoreVehicle(vehicle, q) }))
       .sort((a, b) => b.score - a.score || (a.vehicle.price ?? Infinity) - (b.vehicle.price ?? Infinity))
       .slice(0, limit)
       .map(({ vehicle }) => vehicle);
 
     const enriched = await Promise.all(ranked.map(enrichVehicle));
 
+    const totalMatch = texts.join("\n").match(/([\d,]+)\s+vehicles found/i)?.[1];
+    const total = totalMatch ? Number(totalMatch.replace(/,/g, "")) : unique.length;
+
     return NextResponse.json({
-      source: "Land Rover Willow Grove",
-      total: unique.length,
+      total,
       count: enriched.length,
-      query,
+      query: q,
       condition,
       vehicles: enriched,
+      source: "Land Rover Willow Grove",
+      syncMethod: "reader",
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {
     console.error("Inventory route failed", error);
-    return NextResponse.json(
-      { error: "Could not load live Willow Grove inventory right now.", total: 0, count: 0, vehicles: [] },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: "Live inventory is temporarily unavailable." }, { status: 502 });
   }
 }
