@@ -16,19 +16,36 @@ const models = [
 
 const reviews = [
   {
-    quote:
-      "Jon McGeehan did a great job selling me a new vehicle. Very knowledgeable and excellent communicator!",
+    quote: "Very knowledgeable and excellent communicator!",
     source: "Customer review · December 2025",
   },
   {
-    quote:
-      "This is my third vehicle purchased here and the second with Jon. He was attentive and patient.",
+    quote: "He was attentive and patient.",
     source: "Customer review · April 2025",
   },
   {
-    quote:
-      "Scott and Jon bent over backwards to assist us. Definitely the best experience we've ever had at a dealership.",
+    quote: "Definitely the best experience we've ever had at a dealership.",
     source: "Customer review · June 2025",
+  },
+  {
+    quote: "Friendly, knowledgeable and efficient service from Jon.",
+    source: "Customer review · September 2023",
+  },
+  {
+    quote: "Sales person went above and beyond.",
+    source: "Customer review · May 2024",
+  },
+  {
+    quote: "Fast responses to all correspondences.",
+    source: "Customer review · March 2026",
+  },
+  {
+    quote: "He went above and beyond to make sure my buying experience was smooth and professional.",
+    source: "Customer review",
+  },
+  {
+    quote: "He made the process of car shopping much easier for me.",
+    source: "Customer review",
   },
 ];
 
@@ -172,37 +189,24 @@ export default function Home() {
             <a href="#about">ABOUT</a>
           </nav>
 
-          <a className="pill dark" href="sms:">
-            TEXT JON
-          </a>
+          <a className="pill dark" href="sms:">TEXT JON</a>
         </header>
 
         <div ref={heroCopyRef} className="heroCopy shell">
           <p className="eyebrow heroKicker">A MORE PERSONAL WAY TO BUY</p>
-          <h1>
-            DRIVEN
-            <br />
-            BY PEOPLE.
-          </h1>
+          <h1>DRIVEN<br />BY PEOPLE.</h1>
           <div className="line" />
           <p className="heroLead">
             Helping you find the right Jaguar or Land Rover — and enjoy the journey.
           </p>
 
           <div className="actions">
-            <a className="button dark" href="#finder">
-              FIND MY VEHICLE →
-            </a>
-            <a className="textLink" href="sms:">
-              TEXT JON →
-            </a>
+            <a className="button dark" href="#finder">FIND MY VEHICLE →</a>
+            <a className="textLink" href="sms:">TEXT JON →</a>
           </div>
         </div>
 
-        <div className="scrollCue" aria-hidden="true">
-          <span>SCROLL</span>
-          <i />
-        </div>
+        <div className="scrollCue" aria-hidden="true"><span>SCROLL</span><i /></div>
       </section>
 
       <section ref={lineupRef} id="models" className="modelsLayer">
@@ -212,9 +216,7 @@ export default function Home() {
               <p className="eyebrow">EXPLORE THE LINEUP</p>
               <h2>Which model are you interested in?</h2>
             </div>
-            <a className="textLink" href="#finder">
-              VIEW ALL INVENTORY →
-            </a>
+            <a className="textLink" href="#finder">VIEW ALL INVENTORY →</a>
           </div>
 
           <div className="modelGrid">
@@ -226,18 +228,12 @@ export default function Home() {
                     alt={model.name}
                     fill
                     sizes="(max-width: 900px) 50vw, 25vw"
-                    style={{
-                      objectFit: "cover",
-                      objectPosition: `${58 + index * 8}% center`,
-                    }}
+                    style={{ objectFit: "cover", objectPosition: `${58 + index * 8}% center` }}
                   />
                   <span className="modelNumber">0{index + 1}</span>
                 </div>
                 <div className="modelMeta">
-                  <div>
-                    <strong>{model.name.toUpperCase()}</strong>
-                    <p>{model.kicker}</p>
-                  </div>
+                  <div><strong>{model.name.toUpperCase()}</strong><p>{model.kicker}</p></div>
                   <span className="arrow">→</span>
                 </div>
               </a>
@@ -249,69 +245,34 @@ export default function Home() {
       <section ref={approachRef} className="split">
         <div className="splitCopy">
           <p className="eyebrow">A MORE PERSONAL APPROACH</p>
-          <h2>
-            Straight answers.
-            <br />
-            No pressure.
-          </h2>
+          <h2>Straight answers.<br />No pressure.</h2>
           <p>
-            I&apos;ve spent years helping people buy and enjoy Jaguars and Land Rovers.
-            Whether you know exactly what you want or just have a few questions,
-            I&apos;ll help you figure it out.
+            I&apos;ve spent years helping people buy and enjoy Jaguars and Land Rovers. Whether you know exactly what you want or just have a few questions, I&apos;ll help you figure it out.
           </p>
           <div className="approachLinks">
-            <a className="button dark" href="sms:">
-              ASK JON A QUESTION →
-            </a>
-            <a className="textLink" href="#finder">
-              FIND A VEHICLE →
-            </a>
+            <a className="button dark" href="sms:">ASK JON A QUESTION →</a>
+            <a className="textLink" href="#finder">FIND A VEHICLE →</a>
           </div>
         </div>
 
         <div className="splitVisual">
-          <Image
-            src="/hero-defender.png"
-            alt="Luxury Land Rover detail"
-            fill
-            sizes="50vw"
-            style={{ objectFit: "cover", objectPosition: "78% center" }}
-          />
+          <Image src="/hero-defender.png" alt="Luxury Land Rover detail" fill sizes="50vw" style={{ objectFit: "cover", objectPosition: "78% center" }} />
           <div className="visualWash" />
-          <div className="quote">
-            IT&apos;S MORE THAN A CAR.
-            <br />
-            IT&apos;S A DIFFERENT
-            <br />
-            PERSPECTIVE.
-          </div>
+          <div className="quote">IT&apos;S MORE THAN A CAR.<br />IT&apos;S A DIFFERENT<br />PERSPECTIVE.</div>
         </div>
       </section>
 
       <section ref={finderRef} id="finder" className="finder">
         <div className="finderBg">
-          <Image
-            src="/hero-defender.png"
-            alt="Land Rover mountain road"
-            fill
-            sizes="100vw"
-            style={{ objectFit: "cover", objectPosition: "center 67%" }}
-          />
+          <Image src="/hero-defender.png" alt="Land Rover mountain road" fill sizes="100vw" style={{ objectFit: "cover", objectPosition: "center 67%" }} />
         </div>
         <div className="finderShade" />
 
         <div className="finderContent shell">
           <div className="finderCopy">
             <p className="eyebrow">LET&apos;S FIND YOURS</p>
-            <h2>
-              LOOKING FOR
-              <br />
-              SOMETHING SPECIFIC?
-            </h2>
-            <p>
-              Tell me what matters most. Size, budget, features, color, timing — whatever
-              you know so far.
-            </p>
+            <h2>LOOKING FOR<br />SOMETHING SPECIFIC?</h2>
+            <p>Tell me what matters most. Size, budget, features, color, timing — whatever you know so far.</p>
           </div>
 
           <div className="finderPanel">
@@ -323,13 +284,7 @@ export default function Home() {
             {!submitted ? (
               <form onSubmit={handleFinderSubmit}>
                 <label htmlFor="vehicle-request">Tell me what you&apos;re looking for.</label>
-                <textarea
-                  id="vehicle-request"
-                  value={request}
-                  onChange={(event) => setRequest(event.target.value)}
-                  placeholder="Example: Three kids, under $90k, sporty but not huge, preferably dark green."
-                  rows={5}
-                />
+                <textarea id="vehicle-request" value={request} onChange={(event) => setRequest(event.target.value)} placeholder="Example: Three kids, under $90k, sporty but not huge, preferably dark green." rows={5} />
                 <div className="finderFormBottom">
                   <span>No pressure. Just a better starting point.</span>
                   <button type="submit">SHOW ME MY MATCHES →</button>
@@ -339,13 +294,8 @@ export default function Home() {
               <div className="finderConfirmation">
                 <p className="eyebrow">NICE. THAT&apos;S EXACTLY HOW THIS WILL WORK.</p>
                 <h3>Your request is ready for the inventory connection.</h3>
-                <p>
-                  Next we&apos;ll connect live inventory so this can return your best three matches
-                  instead of sending you into a giant vehicle list.
-                </p>
-                <button type="button" onClick={() => setSubmitted(false)}>
-                  EDIT MY REQUEST
-                </button>
+                <p>Next we&apos;ll connect live inventory so this can return your best three matches instead of sending you into a giant vehicle list.</p>
+                <button type="button" onClick={() => setSubmitted(false)}>EDIT MY REQUEST</button>
               </div>
             )}
           </div>
@@ -353,7 +303,7 @@ export default function Home() {
       </section>
 
       <section className="reviewsSection" aria-labelledby="reviews-title">
-        <div className="reviewsInner shell">
+        <div className="reviewsHeader shell">
           <div className="reviewsTop">
             <div>
               <p className="eyebrow">WHAT CUSTOMERS SAY</p>
@@ -361,10 +311,12 @@ export default function Home() {
             </div>
             <div className="reviewStars" aria-label="Five star reviews">★★★★★</div>
           </div>
+        </div>
 
-          <div className="reviewsGrid">
-            {reviews.map((review) => (
-              <article className="reviewCard" key={review.quote}>
+        <div className="reviewsMarquee" aria-label="Customer reviews">
+          <div className="reviewsTrack">
+            {[...reviews, ...reviews].map((review, index) => (
+              <article className="reviewCard" key={`${review.quote}-${index}`}>
                 <div className="reviewCardStars">★★★★★</div>
                 <blockquote>“{review.quote}”</blockquote>
                 <p>{review.source}</p>
@@ -377,11 +329,7 @@ export default function Home() {
       <section id="about" className="personalAbout">
         <div className="personalAboutInner shell">
           <div className="personalPortraitWrap">
-            <img
-              className="personalPortrait"
-              src="https://di-uploads-pod1.dealerinspire.com/landroverwillowgrove/uploads/2018/04/IMG_0181-356x356.jpg"
-              alt="Jon McGeehan at Land Rover Willow Grove"
-            />
+            <img className="personalPortrait" src="https://di-uploads-pod1.dealerinspire.com/landroverwillowgrove/uploads/2018/04/IMG_0181-356x356.jpg" alt="Jon McGeehan at Land Rover Willow Grove" />
           </div>
 
           <div className="personalAboutCopy">
@@ -389,9 +337,7 @@ export default function Home() {
             <h2>Jon McGeehan</h2>
             <p className="personalRole">SALES GUIDE · JAGUAR LAND ROVER WILLOW GROVE</p>
             <p className="personalIntro">
-              I&apos;ve spent years helping people find the right Jaguar or Land Rover without making
-              the process feel like a typical car-buying experience. My approach is simple: listen,
-              give you straight answers, and help you make the decision that actually fits.
+              I&apos;ve spent years helping people find the right Jaguar or Land Rover without making the process feel like a typical car-buying experience. My approach is simple: listen, give you straight answers, and help you make the decision that actually fits.
             </p>
             <div className="personalAboutActions">
               <a className="button dark" href="sms:">TEXT JON →</a>
@@ -407,9 +353,7 @@ export default function Home() {
           <div className="eyebrow">JAGUAR LAND ROVER WILLOW GROVE</div>
         </div>
         <p>A more personal way to buy.</p>
-        <a className="pill dark" href="sms:">
-          TEXT JON
-        </a>
+        <a className="pill dark" href="sms:">TEXT JON</a>
       </footer>
     </main>
   );
