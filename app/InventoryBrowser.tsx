@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Vehicle = {
   title: string;
@@ -45,9 +45,13 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
   const [total, setTotal] = useState(0);
   const [aiPowered, setAiPowered] = useState(false);
   const [missingAiKey, setMissingAiKey] = useState(false);
+  const requestIdRef = useRef(0);
+  const hasMountedRef = useRef(false);
 
   async function loadInventory(nextQuery = query, nextCondition = condition) {
     const cleaned = nextQuery.trim();
+    const requestId = ++requestIdRef.current;
+
     setLoading(true);
     setError("");
     setAiPowered(false);
@@ -63,6 +67,7 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
       const response = await fetch(`/api/inventory?${params.toString()}`, { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "Could not load inventory");
+      if (requestId !== requestIdRef.current) return;
 
       setTotal(data.total || 0);
       const candidates: Vehicle[] = data.vehicles || [];
@@ -77,40 +82,44 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
         return;
       }
 
-      try {
-        const recommendationResponse = await fetch("/api/recommend", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: cleaned, vehicles: candidates }),
-        });
-        const recommendationData = await recommendationResponse.json();
-
-        if (!recommendationResponse.ok) {
-          throw new Error(recommendationData?.error || "AI recommendation failed");
-        }
-
-        setVehicles((recommendationData.picks || candidates.slice(0, 3)).slice(0, 3));
-        setAiPowered(Boolean(recommendationData.ai));
-        setMissingAiKey(Boolean(recommendationData.missingKey));
-      } catch (recommendationError) {
-        console.error(recommendationError);
-        setVehicles(candidates.slice(0, 3));
+      const recommendationResponse = await fetch("/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: cleaned, vehicles: candidates }),
+      });
+      const recommendationData = await recommendationResponse.json();
+      if (!recommendationResponse.ok) {
+        throw new Error(recommendationData?.error || "AI recommendation failed");
       }
+      if (requestId !== requestIdRef.current) return;
+
+      setVehicles((recommendationData.picks || candidates.slice(0, 3)).slice(0, 3));
+      setAiPowered(Boolean(recommendationData.ai));
+      setMissingAiKey(Boolean(recommendationData.missingKey));
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       setVehicles([]);
       setError(err instanceof Error ? err.message : "Could not load inventory");
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
   }
 
+  // Any request coming from the hero/model finder immediately runs the full
+  // Jon's 3 Picks flow. There is no intermediate raw-results state anymore.
   useEffect(() => {
     setQuery(initialQuery);
     loadInventory(initialQuery, condition);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestSignal]);
 
+  // Changing ALL / NEW / PRE-OWNED should re-run the same request, but skip
+  // this on first mount so it cannot race the requestSignal effect above.
   useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
     loadInventory(query, condition);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [condition]);
@@ -158,7 +167,7 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
               placeholder="3 kids, sporty, under $90k, not too huge…"
               aria-label="Tell Jon what you are looking for"
             />
-            <button type="submit">{query.trim() ? "GET JON'S 3 PICKS →" : "SEARCH →"}</button>
+            <button type="submit">{query.trim() ? "REFINE MY 3 PICKS →" : "SEARCH →"}</button>
           </form>
 
           <div className="inventoryTabs" aria-label="Inventory type">
