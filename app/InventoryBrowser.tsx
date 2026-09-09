@@ -5,11 +5,13 @@ import { useEffect, useMemo, useState } from "react";
 type Vehicle = {
   title: string;
   condition: string;
-  mileage: string;
-  price: string;
+  mileage: number | null;
+  price: number | null;
   vin: string;
   url: string;
-  image?: string;
+  image?: string | null;
+  stock?: string | null;
+  exterior?: string | null;
 };
 
 type Props = {
@@ -17,24 +19,42 @@ type Props = {
   requestSignal?: number;
 };
 
+function money(value: number | null) {
+  if (value == null) return "Call for price";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function miles(value: number | null) {
+  if (value == null) return "Mileage unavailable";
+  return `${new Intl.NumberFormat("en-US").format(value)} mi`;
+}
+
 export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 }: Props) {
   const [query, setQuery] = useState(initialQuery);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [type, setType] = useState("new");
+  const [condition, setCondition] = useState("all");
+  const [total, setTotal] = useState(0);
 
-  async function loadInventory(nextQuery = query, nextType = type) {
+  async function loadInventory(nextQuery = query, nextCondition = condition) {
     setLoading(true);
     setError("");
+
     try {
-      const params = new URLSearchParams({ limit: "36" });
+      const params = new URLSearchParams({ limit: "12", condition: nextCondition });
       if (nextQuery.trim()) params.set("q", nextQuery.trim());
-      if (nextType) params.set("type", nextType);
+
       const response = await fetch(`/api/inventory?${params.toString()}`, { cache: "no-store" });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "Could not load inventory");
+
       setVehicles(data.vehicles || []);
+      setTotal(data.total || 0);
     } catch (err) {
       setVehicles([]);
       setError(err instanceof Error ? err.message : "Could not load inventory");
@@ -45,20 +65,21 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
 
   useEffect(() => {
     setQuery(initialQuery);
-    loadInventory(initialQuery, type);
+    loadInventory(initialQuery, condition);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestSignal]);
 
   useEffect(() => {
-    loadInventory("", type);
+    loadInventory(query, condition);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type]);
+  }, [condition]);
 
   const status = useMemo(() => {
-    if (loading) return "SYNCING LIVE INVENTORY…";
+    if (loading) return "SYNCING WITH WILLOW GROVE…";
     if (error) return "INVENTORY TEMPORARILY UNAVAILABLE";
-    return `${vehicles.length} LIVE MATCH${vehicles.length === 1 ? "" : "ES"}`;
-  }, [loading, error, vehicles.length]);
+    if (query.trim()) return `${vehicles.length} BEST MATCH${vehicles.length === 1 ? "" : "ES"}`;
+    return `${total || vehicles.length} VEHICLES CONNECTED`;
+  }, [loading, error, vehicles.length, query, total]);
 
   return (
     <section id="inventory" className="inventorySection">
@@ -66,7 +87,7 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
         <div className="inventoryTop">
           <div>
             <p className="eyebrow">LIVE WILLOW GROVE INVENTORY</p>
-            <h2>Shop the cars here. Stay on Jon Rover.</h2>
+            <h2>Shop the actual inventory without leaving Jon Rover.</h2>
           </div>
           <span className="inventoryStatus">{status}</span>
         </div>
@@ -76,13 +97,13 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
             className="inventorySearch"
             onSubmit={(event) => {
               event.preventDefault();
-              loadInventory(query, type);
+              loadInventory(query, condition);
             }}
           >
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Defender 110 under $90k, Range Rover Sport, dark green…"
+              placeholder="Defender 110 under $90k, Range Rover Sport, Jaguar F-PACE…"
               aria-label="Search live inventory"
             />
             <button type="submit">SEARCH →</button>
@@ -90,14 +111,14 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
 
           <div className="inventoryTabs" aria-label="Inventory type">
             {[
+              ["all", "ALL"],
               ["new", "NEW"],
               ["used", "PRE-OWNED"],
-              ["", "ALL"],
             ].map(([value, label]) => (
               <button
                 key={label}
-                className={type === value ? "active" : ""}
-                onClick={() => setType(value)}
+                className={condition === value ? "active" : ""}
+                onClick={() => setCondition(value)}
                 type="button"
               >
                 {label}
@@ -116,39 +137,45 @@ export default function InventoryBrowser({ initialQuery = "", requestSignal = 0 
           </div>
         ) : vehicles.length === 0 ? (
           <div className="inventoryMessage">
-            No exact match yet. Try fewer words or a broader budget.
+            No strong match yet. Try a model name, year, or budget like “Defender under $90k.”
           </div>
         ) : (
           <div className="inventoryGrid">
-            {vehicles.map((vehicle) => (
-              <article className="inventoryCard" key={vehicle.vin}>
-                <div className="inventoryCardImage">
-                  {vehicle.image ? (
-                    <img src={vehicle.image} alt={vehicle.title} loading="lazy" />
-                  ) : (
-                    <div className="inventoryImageFallback">JON ROVER</div>
-                  )}
-                  <span>{vehicle.condition || "AVAILABLE"}</span>
-                </div>
+            {vehicles.map((vehicle) => {
+              const sms = encodeURIComponent(
+                `Hi Jon, I'm interested in the ${vehicle.title} — VIN ${vehicle.vin}${vehicle.stock ? `, stock ${vehicle.stock}` : ""}.`
+              );
 
-                <div className="inventoryCardBody">
-                  <h3>{vehicle.title}</h3>
-                  <div className="inventoryFacts">
-                    <span>{vehicle.mileage || "0"} MI</span>
-                    <span>VIN {vehicle.vin.slice(-6)}</span>
+              return (
+                <article className="inventoryCard" key={vehicle.vin}>
+                  <div className="inventoryCardImage">
+                    {vehicle.image ? (
+                      <img src={vehicle.image} alt={vehicle.title} loading="lazy" />
+                    ) : (
+                      <img src="/hero-defender.png" alt={vehicle.title} loading="lazy" />
+                    )}
+                    <span>{vehicle.condition || "AVAILABLE"}</span>
                   </div>
-                  <div className="inventoryPrice">{vehicle.price}</div>
-                  <div className="inventoryActions">
-                    <a href={`sms:?&body=${encodeURIComponent(`Hi Jon, I'm interested in the ${vehicle.title} — VIN ending ${vehicle.vin.slice(-6)}.`)}`}>
-                      TEXT JON →
-                    </a>
-                    <a href={vehicle.url} target="_blank" rel="noreferrer">
-                      FULL DETAILS ↗
-                    </a>
+
+                  <div className="inventoryCardBody">
+                    <div className="inventoryCardTopline">
+                      <span>{vehicle.exterior || "JLR WILLOW GROVE"}</span>
+                      {vehicle.stock ? <span>STOCK {vehicle.stock}</span> : null}
+                    </div>
+                    <h3>{vehicle.title}</h3>
+                    <div className="inventoryFacts">
+                      <span>{miles(vehicle.mileage)}</span>
+                      <span>VIN {vehicle.vin.slice(-6)}</span>
+                    </div>
+                    <div className="inventoryPrice">{money(vehicle.price)}</div>
+                    <div className="inventoryActions">
+                      <a className="inventoryPrimary" href={`sms:?body=${sms}`}>TEXT JON ABOUT THIS ONE →</a>
+                      <a className="inventorySecondary" href={vehicle.url} target="_blank" rel="noreferrer">SOURCE SPECS ↗</a>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </div>
