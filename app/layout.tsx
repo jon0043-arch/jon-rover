@@ -1,8 +1,9 @@
 import "./globals.css";
 import "./hero-position.css";
+import "./about-section.css";
 
 export const metadata = {
-  title: "Jon McGeehan | Jaguar Land Rover Willow Grove",
+  title: "Jon Rover | Jaguar Land Rover Willow Grove",
   description:
     "A more personal way to buy Jaguar and Land Rover in Willow Grove, PA.",
 };
