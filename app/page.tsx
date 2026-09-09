@@ -142,8 +142,8 @@ export default function Home() {
         <div className="heroShade" />
 
         <header className="nav shell">
-          <a href="#home" className="brandLockup" aria-label="Jon McGeehan home">
-            <span className="brand">JON McGEEHAN</span>
+          <a href="#home" className="brandLockup" aria-label="Jon Rover home">
+            <span className="brand">JON ROVER</span>
             <span className="eyebrow">JAGUAR LAND ROVER WILLOW GROVE</span>
           </a>
 
@@ -228,7 +228,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section ref={approachRef} id="about" className="split">
+      <section ref={approachRef} className="split">
         <div className="splitCopy">
           <p className="eyebrow">A MORE PERSONAL APPROACH</p>
           <h2>
@@ -334,9 +334,36 @@ export default function Home() {
         </div>
       </section>
 
+      <section id="about" className="personalAbout">
+        <div className="personalAboutInner shell">
+          <div className="personalPortraitWrap">
+            <img
+              className="personalPortrait"
+              src="https://di-uploads-pod1.dealerinspire.com/landroverwillowgrove/uploads/2018/04/IMG_0181-356x356.jpg"
+              alt="Jon McGeehan at Land Rover Willow Grove"
+            />
+          </div>
+
+          <div className="personalAboutCopy">
+            <p className="eyebrow">ABOUT JON</p>
+            <h2>Jon McGeehan</h2>
+            <p className="personalRole">SALES GUIDE · JAGUAR LAND ROVER WILLOW GROVE</p>
+            <p className="personalIntro">
+              I&apos;ve spent years helping people find the right Jaguar or Land Rover without making
+              the process feel like a typical car-buying experience. My approach is simple: listen,
+              give you straight answers, and help you make the decision that actually fits.
+            </p>
+            <div className="personalAboutActions">
+              <a className="button dark" href="sms:">TEXT JON →</a>
+              <a className="textLink" href="#finder">FIND MY VEHICLE →</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer className="footer shell">
         <div>
-          <div className="brand">JON McGEEHAN</div>
+          <div className="brand">JON ROVER</div>
           <div className="eyebrow">JAGUAR LAND ROVER WILLOW GROVE</div>
         </div>
         <p>A more personal way to buy.</p>
