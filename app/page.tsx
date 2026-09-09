@@ -4,10 +4,9 @@ import Image from "next/image";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import InventoryBrowser from "./InventoryBrowser";
 
 gsap.registerPlugin(ScrollTrigger);
-
-const INVENTORY_URL = "https://www.landroverwillowgrove.com/llm/inventory/?type=new";
 
 const models = [
   { name: "Defender", kicker: "Purposeful. Iconic. Ready for anything." },
@@ -27,11 +26,6 @@ const reviews = [
   { quote: "He made the process of car shopping much easier for me.", source: "Customer review" },
 ];
 
-function modelInventoryUrl(modelName: string) {
-  const params = new URLSearchParams({ type: "new", q: modelName });
-  return `https://www.landroverwillowgrove.com/llm/inventory/?${params.toString()}`;
-}
-
 export default function Home() {
   const heroRef = useRef<HTMLElement | null>(null);
   const heroImageRef = useRef<HTMLDivElement | null>(null);
@@ -41,6 +35,8 @@ export default function Home() {
   const finderRef = useRef<HTMLElement | null>(null);
   const [request, setRequest] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [inventoryQuery, setInventoryQuery] = useState("");
+  const [inventorySignal, setInventorySignal] = useState(0);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -100,10 +96,19 @@ export default function Home() {
     return () => ctx.revert();
   }, []);
 
+  function sendInventorySearch(query: string) {
+    setInventoryQuery(query);
+    setInventorySignal((value) => value + 1);
+    window.setTimeout(() => {
+      document.getElementById("inventory")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+  }
+
   function handleFinderSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!request.trim()) return;
     setSubmitted(true);
+    sendInventorySearch(request.trim());
   }
 
   return (
@@ -123,7 +128,7 @@ export default function Home() {
 
           <nav aria-label="Primary navigation">
             <a href="#home">HOME</a>
-            <a href="#models">VEHICLES</a>
+            <a href="#inventory">VEHICLES</a>
             <a href="#finder">FIND MY VEHICLE</a>
             <a href="#about">ABOUT</a>
           </nav>
@@ -153,12 +158,12 @@ export default function Home() {
               <p className="eyebrow">EXPLORE THE LINEUP</p>
               <h2>Which model are you interested in?</h2>
             </div>
-            <a className="textLink" href={INVENTORY_URL} target="_blank" rel="noreferrer">VIEW LIVE INVENTORY →</a>
+            <button className="textLink inventoryTextButton" type="button" onClick={() => sendInventorySearch("")}>VIEW LIVE INVENTORY →</button>
           </div>
 
           <div className="modelGrid">
             {models.map((model, index) => (
-              <a href={modelInventoryUrl(model.name)} target="_blank" rel="noreferrer" className="modelCard" key={model.name}>
+              <button type="button" className="modelCard modelCardButton" key={model.name} onClick={() => sendInventorySearch(model.name)}>
                 <div className="modelImage">
                   <Image
                     src="/hero-defender.png"
@@ -173,7 +178,7 @@ export default function Home() {
                   <div><strong>{model.name.toUpperCase()}</strong><p>{model.kicker}</p></div>
                   <span className="arrow">→</span>
                 </div>
-              </a>
+              </button>
             ))}
           </div>
         </div>
@@ -186,7 +191,7 @@ export default function Home() {
           <p>I&apos;ve spent years helping people buy and enjoy Jaguars and Land Rovers. Whether you know exactly what you want or just have a few questions, I&apos;ll help you figure it out.</p>
           <div className="approachLinks">
             <a className="button dark" href="sms:">ASK JON A QUESTION →</a>
-            <a className="textLink" href={INVENTORY_URL} target="_blank" rel="noreferrer">BROWSE LIVE INVENTORY →</a>
+            <button className="textLink inventoryTextButton" type="button" onClick={() => sendInventorySearch("")}>BROWSE LIVE INVENTORY →</button>
           </div>
         </div>
 
@@ -212,31 +217,33 @@ export default function Home() {
 
           <div className="finderPanel">
             <div className="finderPanelTop">
-              <span className="eyebrow">AI VEHICLE FINDER</span>
-              <span className="finderStatus">LINKED TO LIVE INVENTORY</span>
+              <span className="eyebrow">LIVE VEHICLE FINDER</span>
+              <span className="finderStatus">WILLOW GROVE INVENTORY CONNECTED</span>
             </div>
 
             {!submitted ? (
               <form onSubmit={handleFinderSubmit}>
                 <label htmlFor="vehicle-request">Tell me what you&apos;re looking for.</label>
-                <textarea id="vehicle-request" value={request} onChange={(event) => setRequest(event.target.value)} placeholder="Example: Three kids, under $90k, sporty but not huge, preferably dark green." rows={5} />
+                <textarea id="vehicle-request" value={request} onChange={(event) => setRequest(event.target.value)} placeholder="Example: Defender under $90k, new Range Rover Sport, or Jaguar F-PACE." rows={5} />
                 <div className="finderFormBottom">
-                  <span>No pressure. Just a better starting point.</span>
+                  <span>Searches the actual Willow Grove inventory.</span>
                   <button type="submit">SHOW ME MY MATCHES →</button>
                 </div>
               </form>
             ) : (
               <div className="finderConfirmation">
-                <p className="eyebrow">LIVE WILLOW GROVE INVENTORY</p>
-                <h3>Your request is ready.</h3>
-                <p>For now, I&apos;ll take you into Land Rover Willow Grove&apos;s current live inventory. Next we can make this page return the best three vehicles here on Jon Rover automatically.</p>
-                <a className="button dark" href={`${INVENTORY_URL}&q=${encodeURIComponent(request)}`} target="_blank" rel="noreferrer">SEARCH LIVE INVENTORY →</a>
+                <p className="eyebrow">LIVE MATCHES LOADED BELOW</p>
+                <h3>I searched the actual Willow Grove inventory.</h3>
+                <p>Your best current matches are now displayed on Jon Rover with real price, mileage, VIN and vehicle photos when available.</p>
+                <button type="button" onClick={() => document.getElementById("inventory")?.scrollIntoView({ behavior: "smooth" })}>SEE MY LIVE MATCHES →</button>
                 <button type="button" onClick={() => setSubmitted(false)}>EDIT MY REQUEST</button>
               </div>
             )}
           </div>
         </div>
       </section>
+
+      <InventoryBrowser initialQuery={inventoryQuery} requestSignal={inventorySignal} />
 
       <section className="reviewsSection" aria-labelledby="reviews-title">
         <div className="reviewsHeader shell">
@@ -275,7 +282,7 @@ export default function Home() {
             <p className="personalIntro">I&apos;ve spent years helping people find the right Jaguar or Land Rover without making the process feel like a typical car-buying experience. My approach is simple: listen, give you straight answers, and help you make the decision that actually fits.</p>
             <div className="personalAboutActions">
               <a className="button dark" href="sms:">TEXT JON →</a>
-              <a className="textLink" href={INVENTORY_URL} target="_blank" rel="noreferrer">VIEW LIVE INVENTORY →</a>
+              <button className="textLink inventoryTextButton" type="button" onClick={() => sendInventorySearch("")}>VIEW LIVE INVENTORY →</button>
             </div>
           </div>
         </div>
