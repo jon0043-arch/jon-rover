@@ -7,6 +7,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const INVENTORY_URL = "https://www.landroverwillowgrove.com/llm/inventory/?type=new";
+
 const models = [
   { name: "Defender", kicker: "Purposeful. Iconic. Ready for anything." },
   { name: "Range Rover", kicker: "The flagship expression of modern luxury." },
@@ -15,39 +17,20 @@ const models = [
 ];
 
 const reviews = [
-  {
-    quote: "Very knowledgeable and excellent communicator!",
-    source: "Customer review · December 2025",
-  },
-  {
-    quote: "He was attentive and patient.",
-    source: "Customer review · April 2025",
-  },
-  {
-    quote: "Definitely the best experience we've ever had at a dealership.",
-    source: "Customer review · June 2025",
-  },
-  {
-    quote: "Friendly, knowledgeable and efficient service from Jon.",
-    source: "Customer review · September 2023",
-  },
-  {
-    quote: "Sales person went above and beyond.",
-    source: "Customer review · May 2024",
-  },
-  {
-    quote: "Fast responses to all correspondences.",
-    source: "Customer review · March 2026",
-  },
-  {
-    quote: "He went above and beyond to make sure my buying experience was smooth and professional.",
-    source: "Customer review",
-  },
-  {
-    quote: "He made the process of car shopping much easier for me.",
-    source: "Customer review",
-  },
+  { quote: "Very knowledgeable and excellent communicator!", source: "Customer review · December 2025" },
+  { quote: "He was attentive and patient.", source: "Customer review · April 2025" },
+  { quote: "Definitely the best experience we've ever had at a dealership.", source: "Customer review · June 2025" },
+  { quote: "Friendly, knowledgeable and efficient service from Jon.", source: "Customer review · September 2023" },
+  { quote: "Sales person went above and beyond.", source: "Customer review · May 2024" },
+  { quote: "Fast responses to all correspondences.", source: "Customer review · March 2026" },
+  { quote: "He went above and beyond to make sure my buying experience was smooth and professional.", source: "Customer review" },
+  { quote: "He made the process of car shopping much easier for me.", source: "Customer review" },
 ];
+
+function modelInventoryUrl(modelName: string) {
+  const params = new URLSearchParams({ type: "new", q: modelName });
+  return `https://www.landroverwillowgrove.com/llm/inventory/?${params.toString()}`;
+}
 
 export default function Home() {
   const heroRef = useRef<HTMLElement | null>(null);
@@ -65,39 +48,20 @@ export default function Home() {
         yPercent: 12,
         scale: 1.06,
         ease: "none",
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
-        },
+        scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: true },
       });
 
       gsap.to(heroCopyRef.current, {
         yPercent: -18,
         opacity: 0.22,
         ease: "none",
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "18% top",
-          end: "82% top",
-          scrub: true,
-        },
+        scrollTrigger: { trigger: heroRef.current, start: "18% top", end: "82% top", scrub: true },
       });
 
       gsap.fromTo(
         lineupRef.current,
         { y: 90 },
-        {
-          y: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: lineupRef.current,
-            start: "top 92%",
-            end: "top 55%",
-            scrub: true,
-          },
-        }
+        { y: 0, ease: "none", scrollTrigger: { trigger: lineupRef.current, start: "top 92%", end: "top 55%", scrub: true } }
       );
 
       gsap.from(".modelCard", {
@@ -106,10 +70,7 @@ export default function Home() {
         stagger: 0.08,
         duration: 0.85,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: ".modelGrid",
-          start: "top 78%",
-        },
+        scrollTrigger: { trigger: ".modelGrid", start: "top 78%" },
       });
 
       gsap.from(".splitCopy > *", {
@@ -118,25 +79,13 @@ export default function Home() {
         stagger: 0.09,
         duration: 0.9,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: approachRef.current,
-          start: "top 68%",
-        },
+        scrollTrigger: { trigger: approachRef.current, start: "top 68%" },
       });
 
       gsap.fromTo(
         ".splitVisual img",
         { scale: 1.08 },
-        {
-          scale: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: approachRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          },
-        }
+        { scale: 1, ease: "none", scrollTrigger: { trigger: approachRef.current, start: "top bottom", end: "bottom top", scrub: true } }
       );
 
       gsap.from(".finderPanel", {
@@ -144,10 +93,7 @@ export default function Home() {
         opacity: 0,
         duration: 1,
         ease: "power3.out",
-        scrollTrigger: {
-          trigger: finderRef.current,
-          start: "top 72%",
-        },
+        scrollTrigger: { trigger: finderRef.current, start: "top 72%" },
       });
     });
 
@@ -164,14 +110,7 @@ export default function Home() {
     <main>
       <section ref={heroRef} className="hero" id="home">
         <div ref={heroImageRef} className="heroImage">
-          <Image
-            src="/hero-defender.png"
-            alt="Land Rover Defender overlooking the mountains"
-            fill
-            priority
-            sizes="100vw"
-            style={{ objectFit: "cover" }}
-          />
+          <Image src="/hero-defender.png" alt="Land Rover Defender overlooking the mountains" fill priority sizes="100vw" style={{ objectFit: "cover" }} />
         </div>
 
         <div className="heroShade" />
@@ -196,9 +135,7 @@ export default function Home() {
           <p className="eyebrow heroKicker">A MORE PERSONAL WAY TO BUY</p>
           <h1>DRIVEN<br />BY PEOPLE.</h1>
           <div className="line" />
-          <p className="heroLead">
-            Helping you find the right Jaguar or Land Rover — and enjoy the journey.
-          </p>
+          <p className="heroLead">Helping you find the right Jaguar or Land Rover — and enjoy the journey.</p>
 
           <div className="actions">
             <a className="button dark" href="#finder">FIND MY VEHICLE →</a>
@@ -216,12 +153,12 @@ export default function Home() {
               <p className="eyebrow">EXPLORE THE LINEUP</p>
               <h2>Which model are you interested in?</h2>
             </div>
-            <a className="textLink" href="#finder">VIEW ALL INVENTORY →</a>
+            <a className="textLink" href={INVENTORY_URL} target="_blank" rel="noreferrer">VIEW LIVE INVENTORY →</a>
           </div>
 
           <div className="modelGrid">
             {models.map((model, index) => (
-              <a href="#finder" className="modelCard" key={model.name}>
+              <a href={modelInventoryUrl(model.name)} target="_blank" rel="noreferrer" className="modelCard" key={model.name}>
                 <div className="modelImage">
                   <Image
                     src="/hero-defender.png"
@@ -246,12 +183,10 @@ export default function Home() {
         <div className="splitCopy">
           <p className="eyebrow">A MORE PERSONAL APPROACH</p>
           <h2>Straight answers.<br />No pressure.</h2>
-          <p>
-            I&apos;ve spent years helping people buy and enjoy Jaguars and Land Rovers. Whether you know exactly what you want or just have a few questions, I&apos;ll help you figure it out.
-          </p>
+          <p>I&apos;ve spent years helping people buy and enjoy Jaguars and Land Rovers. Whether you know exactly what you want or just have a few questions, I&apos;ll help you figure it out.</p>
           <div className="approachLinks">
             <a className="button dark" href="sms:">ASK JON A QUESTION →</a>
-            <a className="textLink" href="#finder">FIND A VEHICLE →</a>
+            <a className="textLink" href={INVENTORY_URL} target="_blank" rel="noreferrer">BROWSE LIVE INVENTORY →</a>
           </div>
         </div>
 
@@ -278,7 +213,7 @@ export default function Home() {
           <div className="finderPanel">
             <div className="finderPanelTop">
               <span className="eyebrow">AI VEHICLE FINDER</span>
-              <span className="finderStatus">REAL INVENTORY SOON</span>
+              <span className="finderStatus">LINKED TO LIVE INVENTORY</span>
             </div>
 
             {!submitted ? (
@@ -292,9 +227,10 @@ export default function Home() {
               </form>
             ) : (
               <div className="finderConfirmation">
-                <p className="eyebrow">NICE. THAT&apos;S EXACTLY HOW THIS WILL WORK.</p>
-                <h3>Your request is ready for the inventory connection.</h3>
-                <p>Next we&apos;ll connect live inventory so this can return your best three matches instead of sending you into a giant vehicle list.</p>
+                <p className="eyebrow">LIVE WILLOW GROVE INVENTORY</p>
+                <h3>Your request is ready.</h3>
+                <p>For now, I&apos;ll take you into Land Rover Willow Grove&apos;s current live inventory. Next we can make this page return the best three vehicles here on Jon Rover automatically.</p>
+                <a className="button dark" href={`${INVENTORY_URL}&q=${encodeURIComponent(request)}`} target="_blank" rel="noreferrer">SEARCH LIVE INVENTORY →</a>
                 <button type="button" onClick={() => setSubmitted(false)}>EDIT MY REQUEST</button>
               </div>
             )}
@@ -336,12 +272,10 @@ export default function Home() {
             <p className="eyebrow">ABOUT JON</p>
             <h2>Jon McGeehan</h2>
             <p className="personalRole">SALES GUIDE · JAGUAR LAND ROVER WILLOW GROVE</p>
-            <p className="personalIntro">
-              I&apos;ve spent years helping people find the right Jaguar or Land Rover without making the process feel like a typical car-buying experience. My approach is simple: listen, give you straight answers, and help you make the decision that actually fits.
-            </p>
+            <p className="personalIntro">I&apos;ve spent years helping people find the right Jaguar or Land Rover without making the process feel like a typical car-buying experience. My approach is simple: listen, give you straight answers, and help you make the decision that actually fits.</p>
             <div className="personalAboutActions">
               <a className="button dark" href="sms:">TEXT JON →</a>
-              <a className="textLink" href="#finder">FIND MY VEHICLE →</a>
+              <a className="textLink" href={INVENTORY_URL} target="_blank" rel="noreferrer">VIEW LIVE INVENTORY →</a>
             </div>
           </div>
         </div>
