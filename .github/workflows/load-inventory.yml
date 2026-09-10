@@ -22,30 +22,17 @@ jobs:
         run: |
           pip install playwright beautifulsoup4
           python -m playwright install --with-deps chromium
-      - name: Fetch complete Dealer Inspire inventory
+      - name: Crawl complete Dealer Inspire inventory
         run: |
           python - <<'PY'
-          import asyncio, json, re
+          import asyncio,json,re
           from pathlib import Path
-          from urllib.parse import parse_qs, urljoin
+          from urllib.parse import urljoin
           from bs4 import BeautifulSoup
           from playwright.async_api import async_playwright
 
           ROOT='https://www.landroverwillowgrove.com'
           UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36'
-
-          def first(v):
-              return v[0] if isinstance(v,list) and v else v
-
-          def parse_num(v):
-              if v is None: return None
-              m=re.search(r'[\d,]+',str(v))
-              return int(m.group(0).replace(',','')) if m else None
-
-          def parse_price(v):
-              if v is None: return None
-              m=re.search(r'\$?\s*([\d,]+)',str(v))
-              return int(m.group(1).replace(',','')) if m else None
 
           def attr(el,*names):
               for n in names:
@@ -53,156 +40,131 @@ jobs:
                   if v not in (None,''): return v
               return None
 
-          def parse_cards(html, condition):
-              soup=BeautifulSoup(html or '', 'html.parser')
-              out=[]; seen=set()
-              # Dealer Inspire places vehicle facts on the vehicle wrapper as data-* attrs.
-              candidates=soup.select('[data-vin], [data-vehicle-vin], .vehicle, .vehicle-card, .inventory-item, .vehicle-wrap, article')
-              for el in candidates:
+          def num(v):
+              if v is None:return None
+              m=re.search(r'[\d,]+',str(v)); return int(m.group().replace(',','')) if m else None
+
+          def price(v):
+              if v is None:return None
+              m=re.search(r'\$?\s*([\d,]+)',str(v)); return int(m.group(1).replace(',','')) if m else None
+
+          def parse_cards(html,condition):
+              soup=BeautifulSoup(html or '', 'html.parser'); out=[]; seen=set()
+              for el in soup.select('[data-vin], [data-vehicle-vin], .vehicle, .vehicle-card, .inventory-item, .vehicle-wrap, article'):
                   blob=el.get_text(' ',strip=True)
                   vin=attr(el,'data-vin','data-vehicle-vin')
                   if not vin:
-                      m=re.search(r'\bVIN\s*:?\s*([A-HJ-NPR-Z0-9]{17})\b',blob,re.I)
-                      vin=m.group(1) if m else None
-                  if not vin or not re.fullmatch(r'[A-HJ-NPR-Z0-9]{17}',str(vin),re.I): continue
+                      m=re.search(r'\bVIN\s*:?\s*([A-HJ-NPR-Z0-9]{17})\b',blob,re.I); vin=m.group(1) if m else None
+                  if not vin or not re.fullmatch(r'[A-HJ-NPR-Z0-9]{17}',str(vin),re.I):continue
                   vin=str(vin).upper()
-                  if vin in seen: continue
+                  if vin in seen:continue
                   seen.add(vin)
                   year=attr(el,'data-year')
                   if not year:
-                      ym=re.search(r'\b(19\d{2}|20\d{2})\b',blob); year=ym.group(1) if ym else None
+                      m=re.search(r'\b(19\d{2}|20\d{2})\b',blob); year=m.group(1) if m else None
                   make=attr(el,'data-make'); model=attr(el,'data-model'); trim=attr(el,'data-trim')
-                  title=' '.join(str(x) for x in [year,make,model,trim] if x)
+                  title=' '.join(str(x) for x in (year,make,model,trim) if x)
                   if not title:
-                      h=el.select_one('h1,h2,h3,h4,.title,.vehicle-title,.vehicle-heading')
-                      title=h.get_text(' ',strip=True) if h else vin
-                  price=parse_price(attr(el,'data-price','data-msrp'))
-                  if price is None:
-                      pm=re.search(r'\$\s*([\d,]+)',blob); price=int(pm.group(1).replace(',','')) if pm else None
-                  mileage=parse_num(attr(el,'data-mileage','data-miles'))
+                      h=el.select_one('h1,h2,h3,h4,.title,.vehicle-title,.vehicle-heading'); title=h.get_text(' ',strip=True) if h else vin
+                  p=price(attr(el,'data-price','data-msrp'))
+                  if p is None:
+                      m=re.search(r'\$\s*([\d,]+)',blob); p=int(m.group(1).replace(',','')) if m else None
+                  mileage=num(attr(el,'data-mileage','data-miles'))
                   if mileage is None:
-                      mm=re.search(r'([\d,]+)\s*(?:miles|mi)\b',blob,re.I)
-                      mileage=int(mm.group(1).replace(',','')) if mm else (0 if condition=='New' else None)
-                  exterior=attr(el,'data-ext-color','data-exterior-color','data-exterior')
-                  interior=attr(el,'data-int-color','data-interior-color','data-interior')
-                  stock=attr(el,'data-stock','data-stock-number')
+                      m=re.search(r'([\d,]+)\s*(?:miles|mi)\b',blob,re.I); mileage=int(m.group(1).replace(',','')) if m else (0 if condition=='New' else None)
                   links=[a.get('href') for a in el.select('a[href]')]
                   listing=next((urljoin(ROOT,h) for h in links if h and ('/inventory/' in h or '/used-' in h or '/new-' in h)),None)
-                  if not listing and links: listing=urljoin(ROOT,links[0])
+                  if not listing and links:listing=urljoin(ROOT,links[0])
                   img=el.select_one('img'); image=None
                   if img:
                       image=attr(img,'src','data-src','data-lazy-src','data-original')
-                      if image: image=urljoin(ROOT,image)
-                  out.append({'vin':vin,'title':title.strip(),'condition':condition,'mileage':mileage,'price':price,'url':listing or ROOT+'/','image':image,'stock':stock,'exterior':exterior,'interior':interior,'interiorFamily':None,'features':[]})
+                      if image:image=urljoin(ROOT,image)
+                  out.append({'vin':vin,'title':title.strip(),'condition':condition,'mileage':mileage,'price':p,'url':listing or ROOT+'/','image':image,'stock':attr(el,'data-stock','data-stock-number'),'exterior':attr(el,'data-ext-color','data-exterior-color','data-exterior'),'interior':attr(el,'data-int-color','data-interior-color','data-interior'),'interiorFamily':None,'features':[]})
               return out
 
-          async def fetch_section(browser,path,condition):
+          async def wait_for_change(page,before_vins):
+              for _ in range(30):
+                  await page.wait_for_timeout(500)
+                  now={v['vin'] for v in parse_cards(await page.content(),'x')}
+                  if now and now!=before_vins:return True
+              return False
+
+          async def crawl(browser,path,condition):
               ctx=await browser.new_context(user_agent=UA,viewport={'width':1440,'height':1200})
               page=await ctx.new_page()
-              ajax_requests=[]
-
-              def on_request(req):
-                  if req.method!='POST' or 'admin-ajax.php' not in req.url: return
-                  body=''
-                  try:
-                      raw=req.post_data_buffer
-                      if raw: body=raw.decode('utf-8',errors='replace')
-                  except Exception:
-                      try: body=req.post_data or ''
-                      except Exception: body=''
-                  ajax_requests.append({'url':req.url,'body':body})
-
-              page.on('request',on_request)
               await page.goto(ROOT+path,wait_until='domcontentloaded',timeout=60000)
-              await page.wait_for_timeout(7000)
-
-              loc=await page.evaluate("() => window.inventory_localization || null")
-              print(condition,'page=',page.url,'localization=',bool(loc),'captured_ajax=',len(ajax_requests))
-              allv={v['vin']:v for v in parse_cards(await page.content(),condition)}
-              print(condition,'DOM vehicles=',len(allv))
-
-              chosen=None
-              # Pick the inventory-manager request fired by the page itself.
-              for item in ajax_requests:
-                  if 'im_ajax_call' in item['body'] or 'get_results' in item['body']:
-                      chosen=item; break
-              if not chosen and ajax_requests: chosen=ajax_requests[0]
-
-              if chosen:
-                  print(condition,'captured endpoint=',chosen['url'])
-                  print(condition,'captured body=',chosen['body'][:700])
-
-              if not loc or not chosen or not chosen['body']:
-                  await ctx.close(); return allv
-
-              body={k:first(v) for k,v in parse_qs(chosen['body'],keep_blank_values=True).items()}
-              # Prefer current localization values in case request body omitted them.
-              body['_nonce']=body.get('_nonce') or loc.get('ajax_nonce')
-              pginfo=loc.get('page') if isinstance(loc.get('page'),dict) else {}
-              body['_post_id']=body.get('_post_id') or body.get('post_id') or pginfo.get('ID') or pginfo.get('id')
-              body['action']=body.get('action') or 'im_ajax_call'
-              body['perform']=body.get('perform') or 'get_results'
-              body['_referer']=body.get('_referer') or path
-              endpoint=loc.get('ajax_url') or chosen['url']
-              print(condition,'ajax_url=',endpoint,'action=',body.get('action'),'perform=',body.get('perform'),'post_id=',body.get('_post_id'))
-
-              async def browser_post(form):
-                  return await page.evaluate("""async ({url, form}) => {
-                    const r=await fetch(url, {
-                      method:'POST',
-                      credentials:'same-origin',
-                      headers:{
-                        'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
-                        'X-Requested-With':'XMLHttpRequest'
-                      },
-                      body:new URLSearchParams(form).toString()
-                    });
-                    return {status:r.status, text:await r.text()};
-                  }""",{'url':endpoint,'form':form})
-
-              first_data=None
-              for n in range(1,80):
-                  form=dict(body); form['page']=str(n)
-                  result=await browser_post(form)
-                  print(condition,'AJAX page',n,'status=',result['status'],'bytes=',len(result['text']))
-                  if result['status']!=200:
-                      break
-                  try: data=json.loads(result['text'])
-                  except Exception:
-                      print(condition,'non-json prefix=',result['text'][:200].replace('\n',' ')); break
-                  if not isinstance(data,dict): break
-                  if first_data is None:
-                      first_data=data
-                      print(condition,'JSON keys=',list(data.keys()))
-                  results=data.get('results') or ''
-                  vs=parse_cards(results,condition)
+              await page.wait_for_timeout(6000)
+              allv={}; visited=[]
+              for step in range(1,60):
+                  cards=parse_cards(await page.content(),condition)
+                  vins={v['vin'] for v in cards}
                   before=len(allv)
-                  for v in vs: allv[v['vin']]=v
-                  print(condition,'parsed=',len(vs),'added=',len(allv)-before,'running=',len(allv),'page_count=',data.get('page_count'))
-                  pages=parse_num(data.get('page_count') or data.get('pages'))
-                  if pages and n>=pages: break
-                  if not vs and n>1: break
+                  for v in cards:allv[v['vin']]=v
+                  print(condition,'STEP',step,'url=',page.url,'pageCards=',len(cards),'added=',len(allv)-before,'total=',len(allv))
+                  if not cards:break
+                  signature=tuple(sorted(vins))
+                  if signature in visited:
+                      print(condition,'repeated page signature; stop');break
+                  visited.append(signature)
 
-              await ctx.close(); return allv
+                  candidates=await page.evaluate("""() => [...document.querySelectorAll('a,button')].map((e,i)=>({i,text:(e.innerText||e.textContent||'').trim(),href:e.href||'',rel:e.getAttribute('rel')||'',aria:e.getAttribute('aria-label')||'',title:e.getAttribute('title')||'',cls:typeof e.className==='string'?e.className:''})).filter(x => /next|›|»/i.test(x.text+' '+x.rel+' '+x.aria+' '+x.title+' '+x.cls) || /^\d+$/.test(x.text)).slice(-40)""")
+                  print(condition,'pagination candidates=',json.dumps(candidates)[:2500])
+
+                  selectors=[
+                    'a[rel="next"]','button[rel="next"]',
+                    'a[aria-label*="Next" i]','button[aria-label*="Next" i]',
+                    'a[title*="Next" i]','button[title*="Next" i]',
+                    '.pagination a.next','.pagination button.next','.pagination-next',
+                    'a.next','button.next','li.next a','li.next button',
+                    '[class*="pagination"] a:has-text("Next")','[class*="pagination"] button:has-text("Next")'
+                  ]
+                  clicked=False
+                  for sel in selectors:
+                      try:
+                          loc=page.locator(sel).filter(visible=True)
+                          if await loc.count():
+                              target=loc.first
+                              if await target.is_visible() and await target.is_enabled():
+                                  print(condition,'click selector',sel,'text=',(await target.inner_text())[:100])
+                                  try:
+                                      await target.click(timeout=10000)
+                                  except Exception:
+                                      await target.click(timeout=10000,force=True)
+                                  clicked=True;break
+                      except Exception:pass
+                  if not clicked:
+                      # Fallback: choose the candidate that clearly looks like Next.
+                      nexts=[c for c in candidates if re.search(r'next|›|»',str(c.get('text',''))+' '+str(c.get('rel',''))+' '+str(c.get('aria',''))+' '+str(c.get('title',''))+' '+str(c.get('cls','')),re.I)]
+                      if nexts:
+                          idx=nexts[-1]['i']
+                          print(condition,'JS click candidate index',idx,nexts[-1])
+                          clicked=await page.evaluate("""idx => {const es=[...document.querySelectorAll('a,button')]; if(!es[idx])return false; es[idx].click(); return true;}""",idx)
+                  if not clicked:
+                      print(condition,'NO NEXT CONTROL');break
+                  changed=await wait_for_change(page,vins)
+                  print(condition,'changed=',changed,'newurl=',page.url)
+                  if not changed:
+                      await page.wait_for_timeout(3000)
+                      cards2=parse_cards(await page.content(),condition)
+                      if {v['vin'] for v in cards2}==vins:break
+              await ctx.close();return allv
 
           async def main():
               async with async_playwright() as p:
                   browser=await p.chromium.launch(headless=True)
-                  vehicles={}
-                  newv=await fetch_section(browser,'/new-vehicles/','New'); vehicles.update(newv)
-                  usedv=await fetch_section(browser,'/pre-owned-vehicles/','Used'); vehicles.update(usedv)
+                  newv=await crawl(browser,'/new-vehicles/','New')
+                  usedv=await crawl(browser,'/pre-owned-vehicles/','Used')
+                  vehicles=dict(newv);vehicles.update(usedv)
                   expected=None
-                  count_page=await browser.new_page(user_agent=UA)
+                  pg=await browser.new_page(user_agent=UA)
                   try:
-                      await count_page.goto(ROOT+'/llm/inventory/',wait_until='domcontentloaded',timeout=60000)
-                      txt=await count_page.locator('body').inner_text()
-                      tm=re.search(r'(\d[\d,]*)\s+vehicles?\s+found',txt,re.I)
-                      if tm: expected=int(tm.group(1).replace(',',''))
-                  except Exception as e: print('count check failed',type(e).__name__,str(e)[:160])
+                      await pg.goto(ROOT+'/llm/inventory/',wait_until='domcontentloaded',timeout=60000);txt=await pg.locator('body').inner_text()
+                      m=re.search(r'(\d[\d,]*)\s+vehicles?\s+found',txt,re.I);expected=int(m.group(1).replace(',','')) if m else None
+                  except Exception as e:print('count check',type(e).__name__,str(e)[:120])
                   await browser.close()
                   print('FINAL',json.dumps({'expected':expected,'new':len(newv),'used':len(usedv),'count':len(vehicles)}))
-                  if expected and len(vehicles)!=expected: raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
-                  if len(vehicles)<200: raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
+                  if expected and len(vehicles)!=expected:raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
+                  if len(vehicles)<200:raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
                   Path('data').mkdir(exist_ok=True)
                   Path('data/inventory.json').write_text(json.dumps({'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'vehicles':list(vehicles.values())},indent=2),encoding='utf-8')
 
