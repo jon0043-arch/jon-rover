@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import snapshot from "../../../data/inventory.json";
 
 const DEALER_BASE = "https://www.landroverwillowgrove.com";
 const INVENTORY_URL = `${DEALER_BASE}/llm/inventory/`;
@@ -8,6 +9,10 @@ type Vehicle = {
   title: string; condition: string; mileage: number | null; price: number | null; vin: string; url: string;
   image?: string | null; stock?: string | null; exterior?: string | null; interior?: string | null; interiorFamily?: string | null; features?: string[]; searchText?: string;
 };
+type SnapshotVehicle = Vehicle & { images?: string[] };
+type Snapshot = { source?: string; expected?: number | null; count?: number; fetchedAt?: string | null; vehicles?: SnapshotVehicle[] };
+const bundledSnapshot = snapshot as Snapshot;
+
 function num(value?: string | null) { if (!value) return null; const n=Number(value.replace(/[^0-9]/g,"")); return Number.isFinite(n)?n:null; }
 function normalizeUrl(value?: string | null) { if (!value) return INVENTORY_URL; if(value.startsWith("http")) return value; return `${DEALER_BASE}${value.startsWith("/")?value:`/${value}`}`; }
 function readerUrl(target:string){ return `${READER_PREFIX}${target.replace(/^https:\/\//,"")}`; }
@@ -27,6 +32,24 @@ function interiorMatches(v:Vehicle,family:string){return v.interiorFamily===fami
 function scoreVehicle(v:Vehicle,q:string){q=q.trim().toLowerCase();if(!q)return 1;let s=0;const budget=parseBudget(q);if(budget!=null&&v.price!=null){if(v.price<=budget)s+=100;else if(v.price<=budget+10000)s+=5;else s-=1000;}if(/\bnew\b/i.test(q))s+=v.condition.toLowerCase()==="new"?20:-50;if(/used|pre[- ]?owned|certified|cpo/i.test(q))s+=v.condition.toLowerCase()!=="new"?20:-50;if(wantsSevenSeats(q))s+=thirdRowFamily(v)?80:-200;return s;}
 async function enrichVehicle(v:Vehicle):Promise<Vehicle>{try{const text=await fetchReader(v.url);const image=text.match(/!\[[^\]]*\]\((https?:\/\/[^)]+\.(?:jpg|jpeg|png|webp)(?:\?[^)]*)?)\)/i)?.[1]??null;const stock=text.match(/Stock(?: Number| #|:)?\s*[:#]?\s*([A-Z0-9-]{4,})/i)?.[1]??null;const exterior=text.match(/Exterior(?: Color)?\s*[:|]\s*([^\n|]{2,80})/i)?.[1]?.trim()??null;const interior=text.match(/Interior(?: Color)?\s*[:|]\s*([^\n|]{2,80})/i)?.[1]?.trim()??text.match(/Interior\s*[:\-]\s*([^\n]{2,80})/i)?.[1]?.trim()??null;const interiorFamily=normalizeInteriorFamily(interior);const features=Array.from(new Set([...text.matchAll(/(?:Feature|Equipment|Package)\s*[:|]\s*([^\n|]{3,80})/gi)].map(m=>m[1].trim()).filter(Boolean))).slice(0,8);return{...v,image,stock,exterior,interior,interiorFamily,features};}catch{return v;}}
 
+function fetchBundledInventory():Vehicle[]{
+  const rows=Array.isArray(bundledSnapshot.vehicles)?bundledSnapshot.vehicles:[];
+  return rows.filter(v=>v?.vin&&v?.title&&v?.condition).map(v=>({
+    title:v.title,
+    condition:v.condition,
+    mileage:v.mileage??null,
+    price:v.price??null,
+    vin:v.vin,
+    url:v.url||INVENTORY_URL,
+    image:v.image??v.images?.[0]??null,
+    stock:v.stock??null,
+    exterior:v.exterior??null,
+    interior:v.interior??null,
+    interiorFamily:v.interiorFamily??null,
+    features:Array.isArray(v.features)?v.features:[],
+  }));
+}
+
 async function fetchSavedInventory():Promise<Vehicle[]>{
   const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!url||!key)return[];
@@ -40,18 +63,21 @@ async function fetchSavedInventory():Promise<Vehicle[]>{
 }
 
 export async function GET(request:NextRequest){const q=request.nextUrl.searchParams.get("q")??"";const condition=(request.nextUrl.searchParams.get("condition")??"all").toLowerCase();const browse=request.nextUrl.searchParams.get("browse")==="1";const requestedLimit=Number(request.nextUrl.searchParams.get("limit")??12)||12;const limit=browse?Math.min(Math.max(requestedLimit,1),250):Math.min(Math.max(requestedLimit,1),18);try{
-let unique=await fetchSavedInventory();const usingSaved=unique.length>0;let texts:string[]=[];
-if(!usingSaved){const pageCount=browse?12:3;const pageUrls=Array.from({length:pageCount},(_,i)=>i===0?INVENTORY_URL:`${INVENTORY_URL}?_p=${i+1}`);texts=await Promise.all(pageUrls.map(async u=>{try{return await fetchReader(u)}catch{return""}}));const parsed=texts.flatMap(parseReaderInventory);unique=Array.from(new Map(parsed.map(v=>[v.vin,v])).values());}
+const supabaseRows=await fetchSavedInventory();const bundledRows=fetchBundledInventory();let unique:Vehicle[]=[];let source="";let texts:string[]=[];
+if(supabaseRows.length>=bundledRows.length&&supabaseRows.length){unique=supabaseRows;source="Jon Rover saved inventory";}
+else if(bundledRows.length){unique=bundledRows;source="Jon Rover bundled inventory snapshot";}
+else{const pageCount=browse?12:3;const pageUrls=Array.from({length:pageCount},(_,i)=>i===0?INVENTORY_URL:`${INVENTORY_URL}?_p=${i+1}`);texts=await Promise.all(pageUrls.map(async u=>{try{return await fetchReader(u)}catch{return""}}));const parsed=texts.flatMap(parseReaderInventory);unique=Array.from(new Map(parsed.map(v=>[v.vin,v])).values());source="Land Rover Willow Grove";}
+const usingDurable=source!=="Land Rover Willow Grove";
 if(!unique.length)return NextResponse.json({error:"Willow Grove inventory could not be read right now.",vehicles:[],count:0},{status:502});
 if(condition==="new")unique=unique.filter(v=>v.condition.toLowerCase()==="new");if(condition==="used")unique=unique.filter(v=>v.condition.toLowerCase()!=="new");let candidates=unique;if(wantsSevenSeats(q))candidates=candidates.filter(thirdRowFamily);const model=requestedModel(q);if(model){const modelOnly=candidates.filter(v=>modelMatches(v,model));if(modelOnly.length)candidates=modelOnly;}
 const budget=parseBudget(q);if(budget!=null)candidates=candidates.filter(v=>v.price!=null&&v.price<=budget+10000);
-if(browse){const browsed=candidates.slice(0,limit);const totalMatch=texts.join("\n").match(/([\d,]+)\s+vehicles found/i)?.[1];return NextResponse.json({total:usingSaved?unique.length:(totalMatch?Number(totalMatch.replace(/,/g,"")):unique.length),count:browsed.length,query:q,condition,vehicles:browsed,source:usingSaved?"Jon Rover saved inventory":"Land Rover Willow Grove",syncMethod:usingSaved?"supabase-primary":"reader-fallback",updatedAt:new Date().toISOString()});}
+if(browse){const browsed=candidates.slice(0,limit);const totalMatch=texts.join("\n").match(/([\d,]+)\s+vehicles found/i)?.[1];return NextResponse.json({total:usingDurable?unique.length:(totalMatch?Number(totalMatch.replace(/,/g,"")):unique.length),count:browsed.length,query:q,condition,vehicles:browsed,source,syncMethod:usingDurable?"durable-primary":"reader-fallback",updatedAt:bundledSnapshot.fetchedAt||new Date().toISOString()});}
 const color=requestedColor(q);const interior=requestedInterior(q);
 const enrichmentPoolSize=(color||interior)?Math.min(candidates.length,40):Math.min(candidates.length,limit);
 let ranked=candidates.map(vehicle=>({vehicle,score:scoreVehicle(vehicle,q)})).sort((a,b)=>b.score-a.score||(a.vehicle.price??Infinity)-(b.vehicle.price??Infinity)).slice(0,enrichmentPoolSize).map(x=>x.vehicle);
-let enriched=usingSaved?ranked:await Promise.all(ranked.map(enrichVehicle));
+let enriched=usingDurable?ranked:await Promise.all(ranked.map(enrichVehicle));
 if(wantsSevenSeats(q))enriched=enriched.filter(likelySevenSeat);
 if(color){const matching=enriched.filter(v=>colorMatches(v,color));if(matching.length>=3)enriched=matching;else if(matching.length>0)enriched=[...matching,...enriched.filter(v=>!colorMatches(v,color))];}
 if(interior){const matching=enriched.filter(v=>interiorMatches(v,interior));if(matching.length>=3)enriched=matching;else if(matching.length>0)enriched=[...matching,...enriched.filter(v=>!interiorMatches(v,interior))];}
 enriched=enriched.slice(0,limit);
-const totalMatch=texts.join("\n").match(/([\d,]+)\s+vehicles found/i)?.[1];return NextResponse.json({total:usingSaved?unique.length:(totalMatch?Number(totalMatch.replace(/,/g,"")):unique.length),count:enriched.length,query:q,condition,vehicles:enriched,source:usingSaved?"Jon Rover saved inventory":"Land Rover Willow Grove",syncMethod:usingSaved?"supabase-primary":"reader-fallback",updatedAt:new Date().toISOString()});}catch(e){console.error("Inventory route failed",e);return NextResponse.json({error:"Live inventory is temporarily unavailable."},{status:502});}}
+const totalMatch=texts.join("\n").match(/([\d,]+)\s+vehicles found/i)?.[1];return NextResponse.json({total:usingDurable?unique.length:(totalMatch?Number(totalMatch.replace(/,/g,"")):unique.length),count:enriched.length,query:q,condition,vehicles:enriched,source,syncMethod:usingDurable?"durable-primary":"reader-fallback",updatedAt:bundledSnapshot.fetchedAt||new Date().toISOString()});}catch(e){console.error("Inventory route failed",e);return NextResponse.json({error:"Live inventory is temporarily unavailable."},{status:502});}}
