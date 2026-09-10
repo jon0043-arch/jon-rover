@@ -26,6 +26,7 @@ jobs:
         run: |
           python - <<'PY'
           import asyncio,json,re
+          from datetime import datetime, timezone
           from pathlib import Path
           from urllib.parse import urljoin
           from bs4 import BeautifulSoup
@@ -47,6 +48,23 @@ jobs:
           def price(v):
               if v is None:return None
               m=re.search(r'\$?\s*([\d,]+)',str(v)); return int(m.group(1).replace(',','')) if m else None
+
+          def image_urls(el):
+              found=[]
+              for img in el.select('img'):
+                  for key in ('src','data-src','data-lazy-src','data-original'):
+                      v=img.get(key)
+                      if v and not v.startswith('data:'): found.append(urljoin(ROOT,v))
+                  for key in ('srcset','data-srcset'):
+                      srcset=img.get(key)
+                      if srcset:
+                          for part in srcset.split(','):
+                              u=part.strip().split(' ')[0]
+                              if u and not u.startswith('data:'): found.append(urljoin(ROOT,u))
+              out=[]
+              for u in found:
+                  if u not in out: out.append(u)
+              return out[:50]
 
           def parse_cards(html,condition):
               soup=BeautifulSoup(html or '', 'html.parser'); out=[]; seen=set()
@@ -75,11 +93,8 @@ jobs:
                   links=[a.get('href') for a in el.select('a[href]')]
                   listing=next((urljoin(ROOT,h) for h in links if h and ('/inventory/' in h or '/used-' in h or '/new-' in h)),None)
                   if not listing and links:listing=urljoin(ROOT,links[0])
-                  img=el.select_one('img'); image=None
-                  if img:
-                      image=attr(img,'src','data-src','data-lazy-src','data-original')
-                      if image:image=urljoin(ROOT,image)
-                  out.append({'vin':vin,'title':title.strip(),'condition':condition,'mileage':mileage,'price':p,'url':listing or ROOT+'/','image':image,'stock':attr(el,'data-stock','data-stock-number'),'exterior':attr(el,'data-ext-color','data-exterior-color','data-exterior'),'interior':attr(el,'data-int-color','data-interior-color','data-interior'),'interiorFamily':None,'features':[]})
+                  images=image_urls(el)
+                  out.append({'vin':vin,'title':title.strip(),'condition':condition,'mileage':mileage,'price':p,'url':listing or ROOT+'/','image':images[0] if images else None,'images':images,'stock':attr(el,'data-stock','data-stock-number'),'exterior':attr(el,'data-ext-color','data-exterior-color','data-exterior'),'interior':attr(el,'data-int-color','data-interior-color','data-interior'),'interiorFamily':None,'features':[]})
               return out
 
           async def wait_for_change(page,before_vins):
@@ -103,21 +118,9 @@ jobs:
                   print(condition,'STEP',step,'url=',page.url,'pageCards=',len(cards),'added=',len(allv)-before,'total=',len(allv))
                   if not cards:break
                   signature=tuple(sorted(vins))
-                  if signature in visited:
-                      print(condition,'repeated page signature; stop');break
+                  if signature in visited:break
                   visited.append(signature)
-
-                  candidates=await page.evaluate("""() => [...document.querySelectorAll('a,button')].map((e,i)=>({i,text:(e.innerText||e.textContent||'').trim(),href:e.href||'',rel:e.getAttribute('rel')||'',aria:e.getAttribute('aria-label')||'',title:e.getAttribute('title')||'',cls:typeof e.className==='string'?e.className:''})).filter(x => /next|›|»/i.test(x.text+' '+x.rel+' '+x.aria+' '+x.title+' '+x.cls) || /^\d+$/.test(x.text)).slice(-40)""")
-                  print(condition,'pagination candidates=',json.dumps(candidates)[:2500])
-
-                  selectors=[
-                    'a[rel="next"]','button[rel="next"]',
-                    'a[aria-label*="Next" i]','button[aria-label*="Next" i]',
-                    'a[title*="Next" i]','button[title*="Next" i]',
-                    '.pagination a.next','.pagination button.next','.pagination-next',
-                    'a.next','button.next','li.next a','li.next button',
-                    '[class*="pagination"] a:has-text("Next")','[class*="pagination"] button:has-text("Next")'
-                  ]
+                  selectors=['a[rel="next"]','button[rel="next"]','a[aria-label*="Next" i]','button[aria-label*="Next" i]','a[title*="Next" i]','button[title*="Next" i]','.pagination a.next','.pagination button.next','.pagination-next','a.next','button.next','li.next a','li.next button','[class*="pagination"] a:has-text("Next")','[class*="pagination"] button:has-text("Next")']
                   clicked=False
                   for sel in selectors:
                       try:
@@ -125,28 +128,10 @@ jobs:
                           if await loc.count():
                               target=loc.first
                               if await target.is_visible() and await target.is_enabled():
-                                  print(condition,'click selector',sel,'text=',(await target.inner_text())[:100])
-                                  try:
-                                      await target.click(timeout=10000)
-                                  except Exception:
-                                      await target.click(timeout=10000,force=True)
-                                  clicked=True;break
+                                  await target.click(timeout=10000,force=True);clicked=True;break
                       except Exception:pass
-                  if not clicked:
-                      # Fallback: choose the candidate that clearly looks like Next.
-                      nexts=[c for c in candidates if re.search(r'next|›|»',str(c.get('text',''))+' '+str(c.get('rel',''))+' '+str(c.get('aria',''))+' '+str(c.get('title',''))+' '+str(c.get('cls','')),re.I)]
-                      if nexts:
-                          idx=nexts[-1]['i']
-                          print(condition,'JS click candidate index',idx,nexts[-1])
-                          clicked=await page.evaluate("""idx => {const es=[...document.querySelectorAll('a,button')]; if(!es[idx])return false; es[idx].click(); return true;}""",idx)
-                  if not clicked:
-                      print(condition,'NO NEXT CONTROL');break
-                  changed=await wait_for_change(page,vins)
-                  print(condition,'changed=',changed,'newurl=',page.url)
-                  if not changed:
-                      await page.wait_for_timeout(3000)
-                      cards2=parse_cards(await page.content(),condition)
-                      if {v['vin'] for v in cards2}==vins:break
+                  if not clicked:break
+                  if not await wait_for_change(page,vins):break
               await ctx.close();return allv
 
           async def main():
@@ -166,7 +151,7 @@ jobs:
                   if expected and len(vehicles)!=expected:raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
                   if len(vehicles)<200:raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
                   Path('data').mkdir(exist_ok=True)
-                  Path('data/inventory.json').write_text(json.dumps({'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'vehicles':list(vehicles.values())},indent=2),encoding='utf-8')
+                  Path('data/inventory.json').write_text(json.dumps({'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'fetchedAt':datetime.now(timezone.utc).isoformat(),'vehicles':list(vehicles.values())},indent=2),encoding='utf-8')
 
           asyncio.run(main())
           PY
