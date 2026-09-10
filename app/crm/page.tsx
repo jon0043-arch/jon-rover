@@ -1,4 +1,5 @@
 "use client";
+import "./crm.css";
 import {useEffect,useMemo,useState} from 'react';
 type Lead={id:string;name?:string;phone?:string;email?:string;status:string;lead_score:number;temperature?:string;last_seen_at:string;last_request?:string;summary?:string;next_best_action?:string;next_action_at?:string;desired_models?:string[];desired_exterior?:string[];desired_interior?:string[];budget_max?:number;notes?:string;transcript?:any[];timeframe?:string;trade_in?:boolean;};
 type Detail={activities:any[];tasks:any[];interests:any[];matches:any[];appointments:any[]};
