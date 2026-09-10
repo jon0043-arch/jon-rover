@@ -2,11 +2,11 @@
   "source": "Land Rover Willow Grove",
   "expected": null,
   "count": 246,
-  "fetchedAt": "2026-09-10T15:25:06.703662+00:00",
+  "fetchedAt": "2026-09-10T17:51:34.661926+00:00",
   "vehicles": [
     {
       "vin": "SALCL2FX8TH378358",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Sport Landmark All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 53886,
@@ -25,7 +25,7 @@
     },
     {
       "vin": "SALZJ2FX1TH010197",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque S All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 55100,
@@ -44,7 +44,7 @@
     },
     {
       "vin": "SALZJ2FX2TH009673",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque S All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 55645,
@@ -63,7 +63,7 @@
     },
     {
       "vin": "SALYV2EX9TA841604",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Velar Belgravia Edition All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 69040,
@@ -82,7 +82,7 @@
     },
     {
       "vin": "SALEJ7EXXT2653552",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 S All Wheel Drive 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 70621,
@@ -101,7 +101,7 @@
     },
     {
       "vin": "SALRW4EU8T2524975",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Gemini Edition All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 79076,
@@ -120,7 +120,7 @@
     },
     {
       "vin": "SALE27EU9T2652332",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 X Dynamic SE All Wheel Drive 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 88231,
@@ -139,7 +139,7 @@
     },
     {
       "vin": "SAL1P9EU0TA656822",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 89155,
@@ -158,7 +158,7 @@
     },
     {
       "vin": "SALRW4EU5T2521726",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Tempest Edition All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 89706,
@@ -177,7 +177,7 @@
     },
     {
       "vin": "SAL1P9EU4TA665412",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 90870,
@@ -196,7 +196,7 @@
     },
     {
       "vin": "SAL1P9EU1TA657347",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 92720,
@@ -215,7 +215,7 @@
     },
     {
       "vin": "SAL1P9EU0TA662491",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 93670,
@@ -234,7 +234,7 @@
     },
     {
       "vin": "SALE27EU8T2652841",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 X Dynamic SE All Wheel Drive 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 94171,
@@ -253,7 +253,7 @@
     },
     {
       "vin": "SAL1L9FU8TA627174",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport Dynamic SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 102000,
@@ -272,7 +272,7 @@
     },
     {
       "vin": "SAL1L9FU8TA669389",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport Dynamic SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 102440,
@@ -291,7 +291,7 @@
     },
     {
       "vin": "SAL1L9FU7TA666113",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport Dynamic SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 104435,
@@ -310,7 +310,7 @@
     },
     {
       "vin": "SAL1L9FU4TA662164",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport Dynamic SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 104585,
@@ -329,7 +329,7 @@
     },
     {
       "vin": "SAL1L9FU9TA666002",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport Dynamic SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 104710,
@@ -348,7 +348,7 @@
     },
     {
       "vin": "SAL1L9FU1TA665880",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport Dynamic SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 106500,
@@ -367,7 +367,7 @@
     },
     {
       "vin": "SALKP9FU0TA384937",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 120235,
@@ -386,7 +386,7 @@
     },
     {
       "vin": "SALKP9FU6TA387244",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 126650,
@@ -405,7 +405,7 @@
     },
     {
       "vin": "SALKP9FU5TA378180",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 127410,
@@ -424,7 +424,7 @@
     },
     {
       "vin": "SALEWEEE1T2620329",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 V8 All Wheel Drive 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 132211,
@@ -443,7 +443,7 @@
     },
     {
       "vin": "SALKPBFU0TA364307",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover SE 7 Seats All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 132770,
@@ -462,7 +462,7 @@
     },
     {
       "vin": "SALKPBFU6TA390510",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover SE 7 Seats All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 134615,
@@ -481,7 +481,7 @@
     },
     {
       "vin": "SALKP9FU4VA393143",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 134665,
@@ -500,7 +500,7 @@
     },
     {
       "vin": "SALKP9F47TA381324",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover SE Phev All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 139270,
@@ -520,7 +520,7 @@
     },
     {
       "vin": "SALKP9E90TA357198",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover SE All Wheel Drive SUV",
       "condition": "New",
       "mileage": 0,
       "price": 147185,
@@ -539,7 +539,7 @@
     },
     {
       "vin": "SALYV2FU7TA841427",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Velar Belgravia Edition All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 79015,
@@ -557,7 +557,7 @@
     },
     {
       "vin": "SALCL2FX6TH380576",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Sport Landmark Landmark AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 52686,
@@ -576,7 +576,7 @@
     },
     {
       "vin": "SALCL2FX0TH380928",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Sport Landmark AWD 4d Sport Utility",
       "condition": "New",
       "mileage": 0,
       "price": 53386,
@@ -595,7 +595,7 @@
     },
     {
       "vin": "SALCL2FX0TH380864",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Sport Landmark Landmark AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 54336,
@@ -614,7 +614,7 @@
     },
     {
       "vin": "SALCL2FX7TH380747",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Sport Landmark Landmark AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 54336,
@@ -633,7 +633,7 @@
     },
     {
       "vin": "SALZJ2FX0TH009851",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque S AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 55645,
@@ -652,7 +652,7 @@
     },
     {
       "vin": "SALZJ2FX5TH009831",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque S AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 55770,
@@ -671,7 +671,7 @@
     },
     {
       "vin": "SALZJ2FX8TH009242",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque S AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 56190,
@@ -690,7 +690,7 @@
     },
     {
       "vin": "SALYJ2EX6TA841281",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Velar S AWD 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 67465,
@@ -709,7 +709,7 @@
     },
     {
       "vin": "SALYJ2EX2TA841147",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Velar S AWD 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 67465,
@@ -728,7 +728,7 @@
     },
     {
       "vin": "SALYJ2EXXTA839453",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Velar S AWD 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 70210,
@@ -747,7 +747,7 @@
     },
     {
       "vin": "SALEJ7EX3T2653957",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 71571,
@@ -766,7 +766,7 @@
     },
     {
       "vin": "SALEJ7EX7T2659115",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 73696,
@@ -785,7 +785,7 @@
     },
     {
       "vin": "SALEJ7EX5T2659789",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 73896,
@@ -804,7 +804,7 @@
     },
     {
       "vin": "SALEJ7EX7T2652875",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 74371,
@@ -823,7 +823,7 @@
     },
     {
       "vin": "SALEJ7EX9T2656068",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 75696,
@@ -842,7 +842,7 @@
     },
     {
       "vin": "SALRW4EU9T2526055",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Gemini Edition AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 80081,
@@ -861,7 +861,7 @@
     },
     {
       "vin": "SALE27EU7T2625873",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P400 X Dynamic SE AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 86481,
@@ -880,7 +880,7 @@
     },
     {
       "vin": "SALEJ7EX1T2630970",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 87140,
@@ -899,7 +899,7 @@
     },
     {
       "vin": "SALE27EUXT2654378",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P400 X Dynamic SE AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 89656,
@@ -918,7 +918,7 @@
     },
     {
       "vin": "SALE27EU4T2654540",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P400 X Dynamic SE AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 91561,
@@ -937,7 +937,7 @@
     },
     {
       "vin": "SAL1P9EU7TA668966",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P360 SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 92430,
@@ -956,7 +956,7 @@
     },
     {
       "vin": "SAL1P9EU9TA661386",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P360 SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 93960,
@@ -975,7 +975,7 @@
     },
     {
       "vin": "SALE27EU6T2642969",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P400 X Dynamic SE AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 94171,
@@ -994,7 +994,7 @@
     },
     {
       "vin": "SALE2FEU0T2651046",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 130 P400 X Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 97041,
@@ -1013,7 +1013,7 @@
     },
     {
       "vin": "SALEX7EU6P2213774",
-      "title": "2023",
+      "title": "2023 Land Rover Defender 110 110 X Four Wheel Drive 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 101415,
@@ -1032,7 +1032,7 @@
     },
     {
       "vin": "SAL1L9FU4TA661886",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 102670,
@@ -1051,7 +1051,7 @@
     },
     {
       "vin": "SAL1L9FU1TA655706",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 102670,
@@ -1070,7 +1070,7 @@
     },
     {
       "vin": "SAL1L9FU2TA666343",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 102835,
@@ -1089,7 +1089,7 @@
     },
     {
       "vin": "SAL1L9FU5TA660794",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 102875,
@@ -1108,7 +1108,7 @@
     },
     {
       "vin": "SAL1L9FU2TA659652",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 103585,
@@ -1127,7 +1127,7 @@
     },
     {
       "vin": "SAL1L9FU4TA664433",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 103960,
@@ -1146,7 +1146,7 @@
     },
     {
       "vin": "SAL1L9FU2VA670525",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover Sport Dynamic SE P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 104685,
@@ -1165,7 +1165,7 @@
     },
     {
       "vin": "SAL1L9FUXTA663514",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 105000,
@@ -1184,7 +1184,7 @@
     },
     {
       "vin": "SAL1L9FU9TA669627",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 105745,
@@ -1203,7 +1203,7 @@
     },
     {
       "vin": "SAL1L9FU7TA660649",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P400 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 105745,
@@ -1222,7 +1222,7 @@
     },
     {
       "vin": "SALE2EFE1T2611382",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P500 X Dynamic SE AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 112891,
@@ -1241,7 +1241,7 @@
     },
     {
       "vin": "SAL1L9E98TA667347",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P530 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 116160,
@@ -1260,7 +1260,7 @@
     },
     {
       "vin": "SAL1L9E96TA650482",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P530 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 116685,
@@ -1279,7 +1279,7 @@
     },
     {
       "vin": "SALEW6EE5T2657518",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 90 P525 V8 AWD 2 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 120266,
@@ -1298,7 +1298,7 @@
     },
     {
       "vin": "SAL1L9E96TA662521",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Sport P530 Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 121770,
@@ -1317,7 +1317,7 @@
     },
     {
       "vin": "SALKP9FU3TA385354",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P400 SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 123520,
@@ -1336,7 +1336,7 @@
     },
     {
       "vin": "SALKP9FU3TA378078",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P400 SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 126335,
@@ -1355,7 +1355,7 @@
     },
     {
       "vin": "SALKP9FU9TA384967",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P400 SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 127205,
@@ -1374,7 +1374,7 @@
     },
     {
       "vin": "SALKP9FU1VA391687",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 127555,
@@ -1393,7 +1393,7 @@
     },
     {
       "vin": "SALKP9FU6TA354163",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P400 SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 128815,
@@ -1412,7 +1412,7 @@
     },
     {
       "vin": "SALKPBFU9TA385530",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P400 SE 7 Seat AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 134665,
@@ -1431,7 +1431,7 @@
     },
     {
       "vin": "SALKPBFU4TA350801",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P400 SE 7 Seat AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 137415,
@@ -1450,7 +1450,7 @@
     },
     {
       "vin": "SALKPBFU8TA379122",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P400 SE 7 Seat AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 137715,
@@ -1469,7 +1469,7 @@
     },
     {
       "vin": "SALKPBFU8TA390301",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P400 SE 7 Seat AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 137865,
@@ -1488,7 +1488,7 @@
     },
     {
       "vin": "SALKP9E90TA370078",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P530 SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 156685,
@@ -1507,7 +1507,7 @@
     },
     {
       "vin": "SALKPBE91TA372901",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P530 SE 7 Seat AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 159315,
@@ -1526,7 +1526,7 @@
     },
     {
       "vin": "SALKPBE95TA371475",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P530 SE 7 Seat AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 161210,
@@ -1545,7 +1545,7 @@
     },
     {
       "vin": "SALKPBE9XTA374078",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P530 SE 7 Seat AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 162565,
@@ -1564,7 +1564,7 @@
     },
     {
       "vin": "SALKP9E93TA365909",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P530 SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 163305,
@@ -1583,7 +1583,7 @@
     },
     {
       "vin": "SALEZEE95T2652761",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 OCTA Black P635 OCTA Black AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 177156,
@@ -1602,7 +1602,7 @@
     },
     {
       "vin": "SALCL2FX1TH380565",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Sport Landmark Landmark AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 54336,
@@ -1621,7 +1621,7 @@
     },
     {
       "vin": "SALZJ2FX0TH006089",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque S AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 57650,
@@ -1640,7 +1640,7 @@
     },
     {
       "vin": "SALZV2FX6TH010801",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque Hoxton Edition Hoxton Edition AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 61100,
@@ -1659,7 +1659,7 @@
     },
     {
       "vin": "SALEJ7EX7T2660278",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 70596,
@@ -1678,7 +1678,7 @@
     },
     {
       "vin": "SALEJ7EX1T2658705",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 71796,
@@ -1697,7 +1697,7 @@
     },
     {
       "vin": "SALEJ7EX4T2659752",
-      "title": "2026",
+      "title": "2026 Land Rover Defender P300 S AWD 4d Sport Utility",
       "condition": "New",
       "mileage": 0,
       "price": 73696,
@@ -1716,7 +1716,7 @@
     },
     {
       "vin": "SALEJ7EX4T2661873",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P300 S AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 75696,
@@ -1735,7 +1735,7 @@
     },
     {
       "vin": "SALE27EU1T2657766",
-      "title": "2026",
+      "title": "2026 Land Rover Defender P400 X Dynamic SE AWD 4d Sport Utility",
       "condition": "New",
       "mileage": 0,
       "price": 85056,
@@ -1754,7 +1754,7 @@
     },
     {
       "vin": "SALE27EU2T2665536",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P400 X Dynamic SE AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 90811,
@@ -1773,7 +1773,7 @@
     },
     {
       "vin": "SALE27EU2T2668758",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 P400 X Dynamic SE AWD 4 Door SUV",
       "condition": "New",
       "mileage": 0,
       "price": 92611,
@@ -1792,7 +1792,7 @@
     },
     {
       "vin": "SALE2FEU9T2662983",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 130 P400 X Dynamic SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 96291,
@@ -1811,7 +1811,7 @@
     },
     {
       "vin": "SALE2FEU3T2659688",
-      "title": "2026",
+      "title": "2026 Land Rover Defender P400 X Dynamic SE AWD 4d Sport Utility",
       "condition": "New",
       "mileage": 0,
       "price": 101946,
@@ -1830,7 +1830,7 @@
     },
     {
       "vin": "SALEWEEE0T2656464",
-      "title": "2026",
+      "title": "2026 Land Rover Defender P525 V8 AWD 4d Sport Utility",
       "condition": "New",
       "mileage": 0,
       "price": 127101,
@@ -1849,7 +1849,7 @@
     },
     {
       "vin": "SALKP9F42VA394890",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE Swb P550e Phev SE AWD SUV",
       "condition": "New",
       "mileage": 0,
       "price": 142645,
@@ -1869,7 +1869,7 @@
     },
     {
       "vin": "SALKP9E95TA385983",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover P530 SE AWD 4d Sport Utility",
       "condition": "New",
       "mileage": 0,
       "price": 154055,
@@ -1888,7 +1888,7 @@
     },
     {
       "vin": "SALYV2FU7TA843436",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Velar Belgravia 400ps Auto All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 83970,
@@ -1907,7 +1907,7 @@
     },
     {
       "vin": "SAL1V9F42VA674777",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover Sport Battersea 550ps Auto All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 127215,
@@ -1927,7 +1927,7 @@
     },
     {
       "vin": "SALK1BE92TA384637",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Autobiography 530ps All Wheel Drive AWD 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 185305,
@@ -1946,7 +1946,7 @@
     },
     {
       "vin": "SALK1BE9XVA400683",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover Autobiography 530ps Auto All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 193470,
@@ -1965,7 +1965,7 @@
     },
     {
       "vin": "SALZJ2FX5TH010879",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque S 249ps All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 55870,
@@ -1984,7 +1984,7 @@
     },
     {
       "vin": "SALZV2FX0TH010969",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Evoque Hoxton 249ps All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 61670,
@@ -2003,7 +2003,7 @@
     },
     {
       "vin": "SALYV2EX5TA841681",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Velar Belgravia 250ps Auto All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 68190,
@@ -2022,7 +2022,7 @@
     },
     {
       "vin": "SALRJ2FX6T2528101",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery S 300ps All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 68285,
@@ -2041,7 +2041,7 @@
     },
     {
       "vin": "SALYV2EX2TA842786",
-      "title": "2026",
+      "title": "2026 Land Rover Range Rover Velar Belgravia 250ps Auto All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 72520,
@@ -2060,7 +2060,7 @@
     },
     {
       "vin": "SALRW4EU1T2528124",
-      "title": "2026",
+      "title": "2026 Land Rover Discovery Gemini 360ps All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 80081,
@@ -2079,7 +2079,7 @@
     },
     {
       "vin": "SALE27EU9T2672497",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 400ps X Dynamic SE All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 88431,
@@ -2098,7 +2098,7 @@
     },
     {
       "vin": "SALE27EU3T2662211",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 400ps X Dynamic SE All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 88431,
@@ -2117,7 +2117,7 @@
     },
     {
       "vin": "SALE27EU9T2675495",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 400ps X Dynamic SE All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 88431,
@@ -2136,7 +2136,7 @@
     },
     {
       "vin": "SALE27EU1T2673210",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 400ps X Dynamic SE All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 88431,
@@ -2155,7 +2155,7 @@
     },
     {
       "vin": "SALE27EU9T2669650",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 400ps X Dynamic SE All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 88931,
@@ -2174,7 +2174,7 @@
     },
     {
       "vin": "SALE27EU5T2671900",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 400ps X Dynamic SE All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 92576,
@@ -2193,7 +2193,7 @@
     },
     {
       "vin": "SALE27EU4T2664081",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 400ps X Dynamic SE All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 92611,
@@ -2212,7 +2212,7 @@
     },
     {
       "vin": "SALE27EUXT2669950",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 400ps X Dynamic SE All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 93371,
@@ -2231,7 +2231,7 @@
     },
     {
       "vin": "SAL1L9E93VA681160",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover Sport Dynamic SE 530ps Auto All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 121795,
@@ -2250,7 +2250,7 @@
     },
     {
       "vin": "SALEWEEE9T2674641",
-      "title": "2026",
+      "title": "2026 Land Rover Defender 110 Xv8 525ps All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 125211,
@@ -2269,7 +2269,7 @@
     },
     {
       "vin": "SALKPBFU9VA400028",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE 400ps Auto 7 Seats All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 136215,
@@ -2288,7 +2288,7 @@
     },
     {
       "vin": "SALKPBFU5VA400611",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE 400ps Auto 7 Seats All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 137215,
@@ -2307,7 +2307,7 @@
     },
     {
       "vin": "SALKP9E91VA399656",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE 530ps Auto All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 150745,
@@ -2326,7 +2326,7 @@
     },
     {
       "vin": "SALKPBE9XVA399243",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE 530ps Auto 7 Seats All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 158045,
@@ -2345,7 +2345,7 @@
     },
     {
       "vin": "SALKPBE91VA397848",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE 530ps Auto 7 Seats All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 160675,
@@ -2364,7 +2364,7 @@
     },
     {
       "vin": "SALKPBE92VA398460",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE 530ps Auto 7 Seats All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 162335,
@@ -2383,7 +2383,7 @@
     },
     {
       "vin": "SALKPBE97VA399166",
-      "title": "2027",
+      "title": "2027 Land Rover Range Rover SE 530ps Auto 7 Seats All Wheel Drive 4 Door",
       "condition": "New",
       "mileage": 0,
       "price": 173745,
@@ -2402,7 +2402,7 @@
     },
     {
       "vin": "SALWR2VF2GA640832",
-      "title": "2016",
+      "title": "2016 Land Rover Range Rover Sport 3 0l V6 Supercharged HSE 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 19990,
@@ -2421,7 +2421,7 @@
     },
     {
       "vin": "SALYL2EX5KA787920",
-      "title": "2019",
+      "title": "2019 Land Rover Range Rover Velar P250 R Dynamic SE AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 22990,
@@ -2440,7 +2440,7 @@
     },
     {
       "vin": "SALZP2FX5LH006913",
-      "title": "2020",
+      "title": "2020 Land Rover Range Rover Evoque SE AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 23990,
@@ -2459,7 +2459,7 @@
     },
     {
       "vin": "SALGS2SV3JA386334",
-      "title": "2018",
+      "title": "2018 Land Rover Range Rover 3 0l V6 Supercharged HSE 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 23990,
@@ -2478,7 +2478,7 @@
     },
     {
       "vin": "SALZJ2FX1PH186589",
-      "title": "2023",
+      "title": "2023 Land Rover Range Rover Evoque S AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 30990,
@@ -2497,7 +2497,7 @@
     },
     {
       "vin": "SALYT2EX8MA304889",
-      "title": "2021",
+      "title": "2021 Land Rover Range Rover Velar P250 R Dynamic S AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 32990,
@@ -2537,7 +2537,7 @@
     },
     {
       "vin": "SALEPEEU6P2229140",
-      "title": "2023",
+      "title": "2023 Land Rover Defender 110 SE AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 41990,
@@ -2682,7 +2682,7 @@
     },
     {
       "vin": "SALEV6RU3M2049020",
-      "title": "2021",
+      "title": "2021 Land Rover Defender 90 First Edition AWD 2d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 46990,
@@ -2701,7 +2701,7 @@
     },
     {
       "vin": "SALGV2SE4MA415433",
-      "title": "2021",
+      "title": "2021 Land Rover Range Rover Autobiography 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 47990,
@@ -2842,7 +2842,7 @@
     },
     {
       "vin": "SALE2FEU0P2160417",
-      "title": "2023",
+      "title": "2023 Land Rover Defender 130 X Dynamic SE AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 53890,
@@ -3069,7 +3069,7 @@
     },
     {
       "vin": "SAL1L9FU1PA124480",
-      "title": "2023",
+      "title": "2023 Land Rover Range Rover Sport SE Dynamic AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 59990,
@@ -3613,7 +3613,7 @@
     },
     {
       "vin": "SAL119E93SA448218",
-      "title": "2025",
+      "title": "2025 Land Rover Range Rover Sport P530 Autobiography AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 103490,
@@ -3692,7 +3692,7 @@
     },
     {
       "vin": "SALKP9E73PA086738",
-      "title": "2023",
+      "title": "2023 Land Rover Range Rover P530 SE AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 98990,
@@ -3748,7 +3748,7 @@
     },
     {
       "vin": "SADFP2FX7L1Z90184",
-      "title": "2020",
+      "title": "2020 Jaguar E Pace SE P250 AWD Automatic AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 16990,
@@ -3787,7 +3787,7 @@
     },
     {
       "vin": "SAJNX2347RC191943",
-      "title": "1994",
+      "title": "1994 Jaguar Xjs 22 2d Convertible",
       "condition": "Used",
       "mileage": 100000,
       "price": 32990,
@@ -4140,7 +4140,7 @@
     },
     {
       "vin": "SAJD51FE6MCK70433",
-      "title": "2021",
+      "title": "2021 Jaguar F Type Coupe R AWD Automatic AWD 2d Coupe",
       "condition": "Used",
       "mileage": 100000,
       "price": 64990,
@@ -4159,7 +4159,7 @@
     },
     {
       "vin": "5UXCR6C56KLL11560",
-      "title": "2019",
+      "title": "2019 Bmw X5 Xdrive40i AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 20490,
@@ -4178,7 +4178,7 @@
     },
     {
       "vin": "1C4RJFAG0NC118011",
-      "title": "2022",
+      "title": "2022 Jeep Grand Cherokee Wk Laredo X 4x4 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 20890,
@@ -4197,7 +4197,7 @@
     },
     {
       "vin": "3LN6L5A90LR608452",
-      "title": "2020",
+      "title": "2020 Lincoln Mkz Standard Fwd 4d Sedan",
       "condition": "Used",
       "mileage": 100000,
       "price": 21990,
@@ -4217,7 +4217,7 @@
     },
     {
       "vin": "WBA7F2C56JB238342",
-      "title": "2018",
+      "title": "2018 Bmw 750i Xdrive AWD 4d Sedan",
       "condition": "Used",
       "mileage": 100000,
       "price": 25990,
@@ -4236,7 +4236,7 @@
     },
     {
       "vin": "WP1AC2A25FLA81980",
-      "title": "2015",
+      "title": "2015 Porsche Cayenne Turbo AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 26190,
@@ -4255,7 +4255,7 @@
     },
     {
       "vin": "5UXTY5C04L9C88735",
-      "title": "2020",
+      "title": "2020 Bmw X3 Xdrive30i AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 26290,
@@ -4274,7 +4274,7 @@
     },
     {
       "vin": "1C4JJXN67PW663743",
-      "title": "2023",
+      "title": "2023 Jeep Wrangler 4xe 4x4 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 26990,
@@ -4293,7 +4293,7 @@
     },
     {
       "vin": "WP1AA2A5XKLB03952",
-      "title": "2019",
+      "title": "2019 Porsche Macan AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 26990,
@@ -4312,7 +4312,7 @@
     },
     {
       "vin": "JF2GTHNC4PH226014",
-      "title": "2023",
+      "title": "2023 Subaru Crosstrek Limited AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 29990,
@@ -4331,7 +4331,7 @@
     },
     {
       "vin": "2T2BZMCA1JC145433",
-      "title": "2018",
+      "title": "2018 Lexus Rx 350 AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 29990,
@@ -4350,7 +4350,7 @@
     },
     {
       "vin": "3FMCR9C62RRF38084",
-      "title": "2024",
+      "title": "2024 Ford Bronco Sport Outer Banks 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 29990,
@@ -4369,7 +4369,7 @@
     },
     {
       "vin": "1FMSK8DH2RGA73145",
-      "title": "2024",
+      "title": "2024 Ford Explorer Xlt 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 31990,
@@ -4388,7 +4388,7 @@
     },
     {
       "vin": "WA1EECF35P1154373",
-      "title": "2023",
+      "title": "2023 Audi Q3 Premium Plus 45 Tfsi S Line Quattro Tiptronic AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 31990,
@@ -4407,7 +4407,7 @@
     },
     {
       "vin": "7SAYGDEF5NF380158",
-      "title": "2022",
+      "title": "2022 Tesla Model Y Performance Dual Motor All Wheel Drive AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 32290,
@@ -4426,7 +4426,7 @@
     },
     {
       "vin": "KMHLW4DK6TU042941",
-      "title": "2026",
+      "title": "2026 Hyundai Elantra N Fwd 4d Sedan",
       "condition": "Used",
       "mileage": 100000,
       "price": 34990,
@@ -4446,7 +4446,7 @@
     },
     {
       "vin": "1G6DU5RK4P0128827",
-      "title": "2023",
+      "title": "2023 Cadillac Ct5 Sport Rwd 4d Sedan",
       "condition": "Used",
       "mileage": 100000,
       "price": 35990,
@@ -4466,7 +4466,7 @@
     },
     {
       "vin": "4JGFF8GE9LA227299",
-      "title": "2020",
+      "title": "2020 Mercedes Benz Gls 580 4matic%c2%ae AWD 4matic 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 38990,
@@ -4485,7 +4485,7 @@
     },
     {
       "vin": "5UX33DT07P9P12940",
-      "title": "2023",
+      "title": "2023 Bmw X4 Xdrive30i AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 41990,
@@ -4504,7 +4504,7 @@
     },
     {
       "vin": "WA1LXBF76PD024390",
-      "title": "2023",
+      "title": "2023 Audi Q7 Premium Plus 55 Tfsi Quattro Tiptronic AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 43590,
@@ -4523,7 +4523,7 @@
     },
     {
       "vin": "WMW33GX06T2Y70568",
-      "title": "2026",
+      "title": "2026 Mini Convertible Jcw Fwd 2d Convertible",
       "condition": "Used",
       "mileage": 100000,
       "price": 43890,
@@ -4542,7 +4542,7 @@
     },
     {
       "vin": "5UX53GP01T9141816",
-      "title": "2026",
+      "title": "2026 Bmw X3 30 Xdrive AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 50990,
@@ -4561,7 +4561,7 @@
     },
     {
       "vin": "WBAGV8C0XPCL26615",
-      "title": "2023",
+      "title": "2023 Bmw M850i Gtan Coupe Xdrive AWD 4d Sedan",
       "condition": "Used",
       "mileage": 100000,
       "price": 51890,
@@ -4580,7 +4580,7 @@
     },
     {
       "vin": "5YMJU0C05M9E05870",
-      "title": "2021",
+      "title": "2021 Bmw X5 M AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 56490,
@@ -4599,7 +4599,7 @@
     },
     {
       "vin": "5LM5J7XC5SGL28173",
-      "title": "2025",
+      "title": "2025 Lincoln Aviator Reserve AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 61990,
@@ -4619,7 +4619,7 @@
     },
     {
       "vin": "5UX33EM0XP9P29770",
-      "title": "2023",
+      "title": "2023 Bmw X7 M60i AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 67990,
@@ -4638,7 +4638,7 @@
     },
     {
       "vin": "5UXCX6C17N9N11416",
-      "title": "2022",
+      "title": "2022 Bmw Alpina Xb7 AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 76890,
@@ -4657,7 +4657,7 @@
     },
     {
       "vin": "1GYS4FKL4RR345607",
-      "title": "2024",
+      "title": "2024 Cadillac Escalade 4WD Sport 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 79990,
@@ -4676,7 +4676,7 @@
     },
     {
       "vin": "1FT8W3BMXRED04097",
-      "title": "2024",
+      "title": "2024 Ford F 350 King Ranch 4x4 4d Crew Cab",
       "condition": "Used",
       "mileage": 100000,
       "price": 81990,
@@ -4695,7 +4695,7 @@
     },
     {
       "vin": "5UX43EX00S9X81367",
-      "title": "2025",
+      "title": "2025 Bmw X6 M60i AWD 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 85990,
@@ -4714,7 +4714,7 @@
     },
     {
       "vin": "JTJGB7CX5R4049207",
-      "title": "2024",
+      "title": "2024 Lexus Lx 600 Luxury 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 93990,
@@ -4733,7 +4733,7 @@
     },
     {
       "vin": "SAJBL4GX8RCY97401",
-      "title": "2024",
+      "title": "2024 Jaguar Xf R Dynamic SE P250 AWD Automatic AWD 4d Sedan",
       "condition": "Used",
       "mileage": 100000,
       "price": null,
@@ -4752,7 +4752,7 @@
     },
     {
       "vin": "W1NKJ8HB8SF258222",
-      "title": "2025",
+      "title": "2025 Mercedes Benz Amg%c2%ae Glc 43 Coupe 4matic%c2%ae AWD 4matic 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": 59990,
@@ -4770,7 +4770,7 @@
     },
     {
       "vin": "1GKS2VKL6TR260690",
-      "title": "2026",
+      "title": "2026 Gmc Yukon 4WD At4 Ultimate 4x4 4d Sport Utility",
       "condition": "Used",
       "mileage": 100000,
       "price": null,
@@ -4786,5 +4786,17 @@
       "interiorFamily": null,
       "features": []
     }
-  ]
+  ],
+  "enrichmentStats": {
+    "count": 246,
+    "cars_links": 0,
+    "matched": 0,
+    "good_titles": 175,
+    "mileage_known": 246,
+    "mileage_nonzero": 120,
+    "stock": 0,
+    "exterior": 0,
+    "interior": 0,
+    "photos": 246
+  }
 }
