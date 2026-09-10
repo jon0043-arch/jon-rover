@@ -18,84 +18,70 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install requests
-        run: pip install requests
-      - name: Fetch and parse dealer inventory
+      - name: Install browser tooling
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Fetch all dealer inventory pages
         run: |
           python - <<'PY'
-          import json,re,requests,time
+          import asyncio,json,re
           from pathlib import Path
-          from urllib.parse import quote
+          from playwright.async_api import async_playwright
 
           BASE='https://www.landroverwillowgrove.com/llm/inventory/'
-          H={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36','Accept':'text/html,text/plain,*/*'}
 
           def parse(text):
+              lines=[x.strip() for x in text.splitlines()]
               out=[]
-              pat=re.compile(r'(?ms)(?:^|\n)\s*[*-]?\s*(?:\[)?((?:19|20)\d{2}[^\n\]]+?)(?:\]\([^\n)]+\))?\s*\n+\s*(Certified Used|Used|New)\s*\n+\s*([\d,]+)\s+miles?\s*\n+\s*\$([\d,]+)\s*\n+\s*VIN:\s*([A-HJ-NPR-Z0-9]{17})',re.I)
-              for m in pat.finditer(text):
-                  out.append({'title':re.sub(r'^\s*[*-]\s*','',m.group(1)).strip(),'condition':m.group(2).strip(),'mileage':int(m.group(3).replace(',','')),'price':int(m.group(4).replace(',','')),'vin':m.group(5).upper(),'url':BASE,'image':None,'stock':None,'exterior':None,'interior':None,'interiorFamily':None,'features':[]})
+              for i,line in enumerate(lines):
+                  vm=re.search(r'VIN:\s*([A-HJ-NPR-Z0-9]{17})',line,re.I)
+                  if not vm: continue
+                  prev=[x for x in lines[max(0,i-14):i] if x]
+                  condition=next((x for x in reversed(prev) if x in ('New','Used','Certified Used')),None)
+                  price=next((x for x in reversed(prev) if re.fullmatch(r'\$[\d,]+',x)),None)
+                  miles=next((x for x in reversed(prev) if re.fullmatch(r'[\d,]+\s+miles?',x,re.I)),None)
+                  title=next((x for x in reversed(prev) if re.match(r'^(19|20)\d{2}\s+',x)),None)
+                  if not all((condition,price,miles,title)): continue
+                  out.append({'vin':vm.group(1).upper(),'title':title,'condition':condition,'mileage':int(re.sub(r'\D','',miles)),'price':int(re.sub(r'\D','',price)),'url':BASE,'image':None,'stock':None,'exterior':None,'interior':None,'interiorFamily':None,'features':[]})
               return out
 
-          def getters(target):
-              encoded=quote(target,safe='')
-              return [
-                  ('direct',target),
-                  ('jina-https','https://r.jina.ai/https://'+target.removeprefix('https://')),
-                  ('jina-http','https://r.jina.ai/http://'+target.removeprefix('https://')),
-                  ('allorigins','https://api.allorigins.win/raw?url='+encoded),
-                  ('codetabs','https://api.codetabs.com/v1/proxy?quest='+encoded),
-                  ('corsproxy','https://corsproxy.io/?url='+encoded),
-              ]
-
-          session=requests.Session()
-          def fetch_target(target,preferred=None):
-              options=getters(target)
-              if preferred:
-                  options=sorted(options,key=lambda x:0 if x[0]==preferred else 1)
-              errors=[]
-              for name,url in options:
-                  try:
-                      r=session.get(url,headers=H,timeout=25)
-                      text=r.text
-                      count=len(parse(text))
-                      print(name,r.status_code,'parsed',count,'bytes',len(text))
-                      if r.ok and count:
-                          return name,text
-                      errors.append(f'{name}:{r.status_code}:{len(text)}')
-                  except Exception as e:
-                      errors.append(f'{name}:{type(e).__name__}')
-              raise RuntimeError('No source path returned vehicles: '+', '.join(errors))
-
-          preferred,first=fetch_target(BASE)
-          tm=re.search(r'([\d,]+)\s+vehicles?\s+found',first,re.I)
-          expected=int(tm.group(1).replace(',','')) if tm else None
-          vehicles={v['vin']:v for v in parse(first)}
-          print('preferred',preferred,'expected',expected,'first',len(vehicles))
-
-          for p in range(2,7):
-              if expected and len(vehicles)>=expected: break
-              targets=[f'{BASE}?limit=100&page={p}',f'{BASE}?_p={p}']
-              pagegot=False
-              for target in targets:
-                  try:
-                      _,txt=fetch_target(target,preferred)
-                      parsed=parse(txt)
+          async def main():
+              async with async_playwright() as p:
+                  browser=await p.chromium.launch(headless=True)
+                  ctx=await browser.new_context(viewport={'width':1440,'height':1200},user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36')
+                  page=await ctx.new_page()
+                  await page.goto(BASE,wait_until='domcontentloaded',timeout=60000)
+                  await page.wait_for_timeout(5000)
+                  vehicles={}; expected=None
+                  for page_num in range(1,8):
+                      text=await page.locator('body').inner_text()
+                      tm=re.search(r'(\d[\d,]*)\s+(?:total\s+)?vehicles?',text,re.I) or re.search(r'(\d[\d,]*)\s+vehicles?\s+found',text,re.I)
+                      if tm and expected is None: expected=int(tm.group(1).replace(',',''))
+                      parsed=parse(text)
                       before=len(vehicles)
                       for v in parsed: vehicles[v['vin']]=v
-                      print('page',p,'added',len(vehicles)-before,'total',len(vehicles))
-                      if len(vehicles)>before:
-                          pagegot=True; break
-                  except Exception as e:
-                      print('page attempt failed',target,e)
-              if not pagegot: break
+                      print('page',page_num,'url',page.url,'parsed',len(parsed),'added',len(vehicles)-before,'total',len(vehicles),'expected',expected)
+                      if expected and len(vehicles)>=expected: break
+                      next_links=page.get_by_role('link',name=re.compile(r'Next',re.I))
+                      if await next_links.count()==0:
+                          print('No Next link found'); break
+                      href=await next_links.first.get_attribute('href')
+                      print('Next href:',href)
+                      await next_links.first.click()
+                      await page.wait_for_load_state('domcontentloaded',timeout=60000)
+                      await page.wait_for_timeout(4000)
+                  await browser.close()
+                  data={'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'vehicles':list(vehicles.values())}
+                  print(json.dumps({'expected':expected,'count':len(vehicles)}))
+                  if expected and len(vehicles)!=expected:
+                      raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
+                  if len(vehicles)<200:
+                      raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
+                  Path('data').mkdir(exist_ok=True)
+                  Path('data/inventory.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
 
-          data={'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'vehicles':list(vehicles.values())}
-          print(json.dumps({'expected':expected,'count':len(vehicles),'path':preferred}))
-          if len(vehicles)<200:
-              raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
-          Path('data').mkdir(exist_ok=True)
-          Path('data/inventory.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
+          asyncio.run(main())
           PY
       - name: Commit inventory snapshot
         run: |
