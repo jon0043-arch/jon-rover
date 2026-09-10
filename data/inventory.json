@@ -17,7 +17,7 @@
         "https://www.landroverwillowgrove.com/wp-content/plugins/dealerinspire-inventory-display/src/VRP/img/gallery-image-icon.png",
         "https://ws-api.autoipacket.com/imgSrc.cfm?id=27D4CFC70F59D8D6AB&vin=SALCL2FX8TH378358"
       ],
-      "stock": null,
+      "stock": "R26395",
       "exterior": "Santorini Black",
       "interior": "Ebony DuoLeather seats with Lunar Grey stitch",
       "interiorFamily": "black",
@@ -40,10 +40,10 @@
         "https://www.landroverwillowgrove.com/wp-content/plugins/dealerinspire-inventory-display/src/VRP/img/gallery-image-icon.png",
         "https://ws-api.autoipacket.com/imgSrc.cfm?id=27D4CFC70F59D8D6AB&vin=SALZJ2FX1TH010197"
       ],
-      "stock": null,
+      "stock": "R26558",
       "exterior": "Fuji White",
-      "interior": null,
-      "interiorFamily": null,
+      "interior": "Cloud/Ebony",
+      "interiorFamily": "off-white",
       "features": [],
       "year": 2026,
       "make": "Land Rover",
@@ -63,10 +63,10 @@
         "https://www.landroverwillowgrove.com/wp-content/plugins/dealerinspire-inventory-display/src/VRP/img/gallery-image-icon.png",
         "https://ws-api.autoipacket.com/imgSrc.cfm?id=27D4CFC70F59D8D6AB&vin=SALZJ2FX2TH009673"
       ],
-      "stock": null,
+      "stock": "R26548",
       "exterior": "Tribeca Blue",
-      "interior": null,
-      "interiorFamily": null,
+      "interior": "Cloud/Ebony",
+      "interiorFamily": "off-white",
       "features": [],
       "year": 2026,
       "make": "Land Rover",
@@ -86,7 +86,7 @@
         "https://www.landroverwillowgrove.com/wp-content/plugins/dealerinspire-inventory-display/src/VRP/img/gallery-image-icon.png",
         "https://ws-api.autoipacket.com/imgSrc.cfm?id=27D4CFC70F59D8D6AB&vin=SALYV2EX9TA841604"
       ],
-      "stock": null,
+      "stock": "R26536",
       "exterior": "Santorini Black",
       "interior": "Ebony",
       "interiorFamily": "black",
@@ -109,7 +109,7 @@
         "https://www.landroverwillowgrove.com/wp-content/plugins/dealerinspire-inventory-display/src/VRP/img/gallery-image-icon.png",
         "https://ws-api.autoipacket.com/imgSrc.cfm?id=27D4CFC70F59D8D6AB&vin=SALEJ7EXXT2653552"
       ],
-      "stock": null,
+      "stock": "R26555",
       "exterior": "Fuji White",
       "interior": "Ebony",
       "interiorFamily": "black",
@@ -132,7 +132,7 @@
         "https://www.landroverwillowgrove.com/wp-content/plugins/dealerinspire-inventory-display/src/VRP/img/gallery-image-icon.png",
         "https://ws-api.autoipacket.com/imgSrc.cfm?id=27D4CFC70F59D8D6AB&vin=SALRW4EU8T2524975"
       ],
-      "stock": null,
+      "stock": "R26361",
       "exterior": "Fuji White",
       "interior": "Caraway Windsor Leather",
       "interiorFamily": "tan",
@@ -5778,8 +5778,8 @@
     "mileage": 246,
     "mileage_positive": 246,
     "exterior": 246,
-    "interior": 244,
-    "stock": 213,
+    "interior": 246,
+    "stock": 219,
     "vin": 246
   }
 }
