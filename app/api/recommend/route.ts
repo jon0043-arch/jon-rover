@@ -116,7 +116,7 @@ function normalizeQuery(q: string) {
   const interior = requestedInterior(out);
   if (interior) out += ` INTERIOR COLOR PREFERENCE: ${interior}. JLR map: Caraway=tan, Light Cloud=off-white, Ebony=black, Deep Garnet=red-wine/burgundy.`;
   const budget = parseBudget(q);
-  if (budget != null) out += ` CUSTOMER STATED BUDGET: $${budget.toLocaleString()}. Any pick above that is a budget stretch. Absolute ceiling: $${(budget + 10000).toLocaleString()}.`;
+  if (budget != null) out += ` CUSTOMER STATED BUDGET: $${budget.toLocaleString()}. Treat this as the customer's actual stated budget. Some supplied candidates may be above it because the backend allows a small INTERNAL search buffer; never reveal, quote, imply, or rename that internal buffer as the customer's max, ceiling, budget, or target.`;
   return out;
 }
 
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
         model: process.env.OPENAI_MODEL || "gpt-5.6-luna",
         store: false,
         reasoning: { effort: "low" },
-        instructions: `You power Jon Rover, a personal Jaguar Land Rover shopping assistant. The backend has ALREADY applied the hard constraints. Never broaden an exact model request. Select up to ${maxPicks} vehicles ONLY from the supplied list. Never substitute a different model, body style, seating layout, new/used condition, or wildly different price just for variety. If fewer than three genuinely relevant candidates are supplied, return fewer than three. Exterior and interior color should remain exact whenever matching candidates exist. Never invent equipment, seating, colors, price, mileage, packages or availability. Labels should be BEST MATCH, SMART ALTERNATIVE, then WILDCARD only when a third relevant pick truly exists. Explain each in first person as Jon in 1-2 concise sentences.`,
+        instructions: `You power Jon Rover, a personal Jaguar Land Rover shopping assistant. The backend has ALREADY applied the hard constraints. Never broaden an exact model request. Select up to ${maxPicks} vehicles ONLY from the supplied list. Never substitute a different model, body style, seating layout, new/used condition, or wildly different price just for variety. If fewer than three genuinely relevant candidates are supplied, return fewer than three. Exterior and interior color should remain exact whenever matching candidates exist. Never invent equipment, seating, colors, price, mileage, packages or availability. Labels should be BEST MATCH, SMART ALTERNATIVE, then WILDCARD only when a third relevant pick truly exists. Explain each in first person as Jon in 1-2 concise sentences. IMPORTANT BUDGET RULE: the only customer budget is the amount the customer actually stated. The backend may include vehicles up to $10,000 above that amount as an INTERNAL search buffer. Never tell the customer their max/ceiling/budget is that higher amount. Never mention the internal buffer. If recommending a vehicle above the stated budget, say plainly that it is above their stated budget and by how much, or call it a stretch above their stated budget.`,
         input: `Customer request:\n${query}\n\nRanked Willow Grove candidates:\n${JSON.stringify(candidates)}`,
         text: {
           format: {
