@@ -24,6 +24,17 @@ create index if not exists inventory_vehicles_price_idx on public.inventory_vehi
 create index if not exists inventory_vehicles_title_idx on public.inventory_vehicles using gin (to_tsvector('simple', title));
 alter table public.inventory_vehicles enable row level security;
 
+create table if not exists public.inventory_vehicle_images (
+  id bigserial primary key,
+  vin text not null references public.inventory_vehicles(vin) on delete cascade,
+  image_url text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  unique(vin, image_url)
+);
+create index if not exists inventory_vehicle_images_vin_idx on public.inventory_vehicle_images(vin, sort_order);
+alter table public.inventory_vehicle_images enable row level security;
+
 create table if not exists public.jon_rover_leads (
   id uuid primary key default gen_random_uuid(), session_id text unique not null,
   created_at timestamptz not null default now(), last_seen_at timestamptz not null default now(),
