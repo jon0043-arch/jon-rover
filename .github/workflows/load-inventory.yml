@@ -1,0 +1,24 @@
+name: Load Jon Rover Inventory
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/load-inventory.yml'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger inventory sync
+        run: |
+          set -e
+          RESPONSE=$(curl -sS -X POST \
+            -H 'Content-Type: application/json' \
+            -w '\n%{http_code}' \
+            'https://jon-rover-n66pe3882-jon0043-archs-projects.vercel.app/api/inventory/sync')
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          CODE=$(echo "$RESPONSE" | tail -n1)
+          echo "$BODY"
+          test "$CODE" -ge 200 -a "$CODE" -lt 300
