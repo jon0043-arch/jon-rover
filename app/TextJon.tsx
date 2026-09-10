@@ -1,5 +1,6 @@
 "use client";
 
+import "./text-jon.css";
 import {useEffect,useState} from "react";
 import {QRCodeSVG} from "qrcode.react";
 
