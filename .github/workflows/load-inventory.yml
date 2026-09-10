@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/load-inventory.yml'
+      - 'scripts/enrich_inventory.py'
   workflow_dispatch:
 
 permissions:
@@ -20,7 +21,7 @@ jobs:
           python-version: '3.12'
       - name: Install browser tooling
         run: |
-          pip install playwright beautifulsoup4
+          pip install playwright beautifulsoup4 requests
           python -m playwright install --with-deps chromium
       - name: Crawl complete Dealer Inspire inventory
         run: |
@@ -89,7 +90,7 @@ jobs:
                       m=re.search(r'\$\s*([\d,]+)',blob); p=int(m.group(1).replace(',','')) if m else None
                   mileage=num(attr(el,'data-mileage','data-miles'))
                   if mileage is None:
-                      m=re.search(r'([\d,]+)\s*(?:miles|mi)\b',blob,re.I); mileage=int(m.group(1).replace(',','')) if m else (0 if condition=='New' else None)
+                      m=re.search(r'([\d,]+)\s*(?:miles|mi)\b',blob,re.I); mileage=int(m.group(1).replace(',','')) if m else None
                   links=[a.get('href') for a in el.select('a[href]')]
                   listing=next((urljoin(ROOT,h) for h in links if h and ('/inventory/' in h or '/used-' in h or '/new-' in h)),None)
                   if not listing and links:listing=urljoin(ROOT,links[0])
@@ -155,6 +156,8 @@ jobs:
 
           asyncio.run(main())
           PY
+      - name: Enrich make, model, VIN details, mileage and colors
+        run: python scripts/enrich_inventory.py
       - name: Commit inventory snapshot
         run: |
           git config user.name 'jon-rover-bot'
