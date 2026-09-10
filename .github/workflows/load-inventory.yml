@@ -22,14 +22,16 @@ jobs:
         run: |
           pip install playwright
           python -m playwright install --with-deps chromium
-      - name: Fetch all dealer inventory pages
+      - name: Fetch inventory in small filtered slices
         run: |
           python - <<'PY'
           import asyncio,json,re
           from pathlib import Path
+          from urllib.parse import urlencode
           from playwright.async_api import async_playwright
 
           BASE='https://www.landroverwillowgrove.com/llm/inventory/'
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36'
 
           def parse(text):
               lines=[x.strip() for x in text.splitlines()]
@@ -46,38 +48,62 @@ jobs:
                   out.append({'vin':vm.group(1).upper(),'title':title,'condition':condition,'mileage':int(re.sub(r'\D','',miles)),'price':int(re.sub(r'\D','',price)),'url':BASE,'image':None,'stock':None,'exterior':None,'interior':None,'interiorFamily':None,'features':[]})
               return out
 
+          async def grab(browser,params,label):
+              ctx=await browser.new_context(viewport={'width':1440,'height':1200},user_agent=UA)
+              page=await ctx.new_page()
+              url=BASE + ('?'+urlencode(params) if params else '')
+              try:
+                  await page.goto(url,wait_until='domcontentloaded',timeout=60000)
+                  await page.wait_for_timeout(3500)
+                  text=await page.locator('body').inner_text()
+                  parsed=parse(text)
+                  tm=re.search(r'(\d[\d,]*)\s+vehicles?\s+found',text,re.I)
+                  reported=int(tm.group(1).replace(',','')) if tm else None
+                  print(label,'url=',page.url,'reported=',reported,'parsed=',len(parsed))
+                  return parsed,reported,text[:300]
+              except Exception as e:
+                  print(label,'FAILED',type(e).__name__,str(e)[:160])
+                  return [],None,''
+              finally:
+                  await ctx.close()
+
           async def main():
               async with async_playwright() as p:
                   browser=await p.chromium.launch(headless=True)
-                  ctx=await browser.new_context(viewport={'width':1440,'height':1200},user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36')
-                  page=await ctx.new_page()
-                  await page.goto(BASE,wait_until='domcontentloaded',timeout=60000)
-                  await page.wait_for_timeout(5000)
                   vehicles={}; expected=None
-                  for page_num in range(1,8):
-                      text=await page.locator('body').inner_text()
-                      tm=re.search(r'(\d[\d,]*)\s+(?:total\s+)?vehicles?',text,re.I) or re.search(r'(\d[\d,]*)\s+vehicles?\s+found',text,re.I)
-                      if tm and expected is None: expected=int(tm.group(1).replace(',',''))
-                      parsed=parse(text)
+
+                  # Base page gives us the authoritative total and first 100 vehicles.
+                  parsed,reported,_=await grab(browser,{},'ALL')
+                  if reported: expected=reported
+                  for v in parsed: vehicles[v['vin']]=v
+
+                  # The dealer's pagination redirects automated browsers. Instead, request
+                  # filtered result sets that stay below the 100-row page limit and union by VIN.
+                  slices=[
+                    ({'type':'new','q':'Defender'},'NEW DEFENDER'),
+                    ({'type':'new','q':'Range Rover'},'NEW RANGE ROVER FAMILY'),
+                    ({'type':'new','q':'Discovery'},'NEW DISCOVERY'),
+                    ({'type':'new','q':'Jaguar'},'NEW JAGUAR'),
+                    ({'type':'used','make':'Land Rover'},'USED LAND ROVER'),
+                    ({'type':'used','make':'Jaguar'},'USED JAGUAR'),
+                  ]
+                  other_makes=['Audi','BMW','Cadillac','Dodge','Ford','GMC','Hyundai','Jeep','Lexus','Lincoln','Mercedes-Benz','Subaru','Toyota','Volkswagen','Volvo','Chevrolet','Porsche','Genesis','Kia','Nissan','Honda','Acura','INFINITI','MINI','Maserati']
+                  slices += [({'type':'used','make':m},f'USED {m.upper()}') for m in other_makes]
+
+                  for params,label in slices:
+                      parsed,reported,preview=await grab(browser,params,label)
                       before=len(vehicles)
                       for v in parsed: vehicles[v['vin']]=v
-                      print('page',page_num,'url',page.url,'parsed',len(parsed),'added',len(vehicles)-before,'total',len(vehicles),'expected',expected)
+                      print(label,'added=',len(vehicles)-before,'total=',len(vehicles),'preview=',preview.replace('\n',' ')[:100])
                       if expected and len(vehicles)>=expected: break
-                      next_links=page.get_by_role('link',name=re.compile(r'Next',re.I))
-                      if await next_links.count()==0:
-                          print('No Next link found'); break
-                      href=await next_links.first.get_attribute('href')
-                      print('Next href:',href)
-                      await next_links.first.click()
-                      await page.wait_for_load_state('domcontentloaded',timeout=60000)
-                      await page.wait_for_timeout(4000)
+
                   await browser.close()
                   data={'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'vehicles':list(vehicles.values())}
-                  print(json.dumps({'expected':expected,'count':len(vehicles)}))
-                  if expected and len(vehicles)!=expected:
+                  print('FINAL',json.dumps({'expected':expected,'count':len(vehicles)}))
+                  if not expected:
+                      raise SystemExit('Could not read dealer inventory total')
+                  if len(vehicles)!=expected:
                       raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
-                  if len(vehicles)<200:
-                      raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
                   Path('data').mkdir(exist_ok=True)
                   Path('data/inventory.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
 
