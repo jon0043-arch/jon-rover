@@ -12,8 +12,38 @@ function config(){
   const found=candidates.find(([,v])=>Boolean(v));
   return url&&found?.[1]?{url:url.replace(/\/$/,''),key:found[1],keySource:found[0]}:null;
 }
-function cleanName(value?:string|null){if(!value)return null;const v=value.trim().replace(/[^A-Za-z' -]/g,"").replace(/\s+/g," ");if(!v||v.length>60)return null;return v.split(" ").slice(0,3).map(p=>p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()).join(" ");}
-function contactFrom(messages:Message[]){const userText=messages.filter(m=>m.role==="user").map(m=>m.content).join("\n");const email=userText.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0]??null;const phone=userText.match(/(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/)?.[0]??null;let name:string|null=null;const explicit=userText.match(/(?:my name is|name's|name is|this is)\s+([A-Za-z][A-Za-z' -]{1,50})/i)?.[1]||userText.match(/(?:^|[.!?]\s+)i(?:'m| am)\s+([A-Za-z][A-Za-z' -]{1,30})(?=\s*[.!?,]|\s*$)/im)?.[1];name=cleanName(explicit);if(!name){for(let i=messages.length-1;i>=1;i--){const cur=messages[i],prev=messages[i-1];if(cur.role!=="user"||prev.role!=="assistant")continue;if(/what(?:'s| is) your name|first name|who am i speaking with/i.test(prev.content)){const s=cur.content.trim();if(/^[A-Za-z][A-Za-z' -]{0,40}$/.test(s))name=cleanName(s);break;}}}return{name,phone,email};}
+
+const NAME_STOP=/^(?:looking|interested|trying|shopping|want|need|good|fine|okay|ok|yes|no|here|ready|range|rover|defender|discovery|velar|evoque|jaguar|sport|lease|finance|cash|today|tomorrow|black|white|green|blue|red|silver|gray|grey|bronze|vehicle|car|suv|numbers|price|payment)$/i;
+function cleanName(value?:string|null){
+  if(!value)return null;
+  const raw=value.trim().replace(/[.,!?;:]+$/,'').replace(/\s+/g,' ');
+  if(!raw||raw.length>60||!/^([A-Za-z][A-Za-z' -]*)$/.test(raw))return null;
+  const parts=raw.split(' ').filter(Boolean);
+  if(!parts.length||parts.length>3||parts.some(p=>NAME_STOP.test(p)))return null;
+  return parts.map(p=>p.charAt(0).toUpperCase()+p.slice(1).toLowerCase()).join(' ');
+}
+function contactFrom(messages:Message[]){
+  const userText=messages.filter(m=>m.role==='user').map(m=>m.content).join('\n');
+  const email=userText.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0]??null;
+  const phone=userText.match(/(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/)?.[0]??null;
+  let name:string|null=null;
+  for(let i=messages.length-1;i>=0&&!name;i--){
+    const cur=messages[i];
+    if(cur.role!=='user')continue;
+    const text=cur.content.trim();
+    const explicit=
+      text.match(/(?:my name is|name(?:'s| is)|this is|i(?:'m| am)|it(?:'s| is))\s+([A-Za-z][A-Za-z' -]{0,50}?)(?=\s*(?:[,!.?]|$))/i)?.[1]
+      ||text.match(/^([A-Za-z][A-Za-z' -]{1,40})\s+here[.!]?$/i)?.[1];
+    name=cleanName(explicit);
+    if(name)break;
+    const prev=messages[i-1];
+    const asked=prev?.role==='assistant'&&/(?:what(?:'s| is) your (?:full )?name|first(?: and last)? name|last name|who am i speaking with|who(?:'s| is) this|your name)/i.test(prev.content);
+    const standalone=cleanName(text);
+    if(asked&&standalone){name=standalone;break;}
+    if(standalone&&text.split(/\s+/).length>=2&&!/[0-9@]/.test(text)){name=standalone;break;}
+  }
+  return{name,phone,email};
+}
 
 export async function GET(){
   const c=config();
