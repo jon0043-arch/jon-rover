@@ -29,7 +29,38 @@ function contactFrom(messages:ChatMessage[]){
 function scoreLead(text:string){let s=10;if(/today|tomorrow|this week|appointment|come in|test drive|available|buy|purchase|trade/i.test(text))s+=35;if(/phone|call|text|email|@|\d{3}[-.\s]\d{3}/i.test(text))s+=30;if(/budget|under \$|finance|payment|lease|cash/i.test(text))s+=15;return Math.min(s,100);}
 function intelligence(text:string){const budget=text.match(/(?:under|budget|up to|max(?:imum)?)\s*\$?([\d,]+)\s*(k)?/i);let max=budget?Number(budget[1].replace(/,/g,'')):null;if(max&&budget?.[2])max*=1000;const models=['Range Rover Sport','Range Rover','Defender 130','Defender 110','Defender 90','Defender','Discovery Sport','Discovery','Velar','Evoque','F-PACE'].filter(m=>new RegExp(m.replace('-','[- ]?'),'i').test(text));const exterior=['black','white','green','blue','red','silver','gray','grey','bronze'].filter(c=>new RegExp(`\\b${c}\\b`,'i').test(text));const score=scoreLead(text);return{budget_max:max,desired_models:models,desired_exterior:exterior,needs_third_row:/third[ -]?row|3rd[ -]?row|7[ -]?seat|seven[ -]?seat/i.test(text),trade_in:/\btrade(?:-?in)?\b/i.test(text),wants_new:/\bnew\b/i.test(text),wants_used:/used|pre[- ]?owned|cpo|certified/i.test(text),timeframe:/today/i.test(text)?'today':/tomorrow/i.test(text)?'tomorrow':/this week/i.test(text)?'this week':/this month/i.test(text)?'this month':null,temperature:score>=75?'hot':score>=45?'warm':'cold'};}
 
-async function saveCrm(sessionId:string,messages:ChatMessage[],query:string){const url=process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!url||!key||!sessionId)return;const allText=messages.map(m=>m.content).join("\n"),contact=contactFrom(messages),intel=intelligence(allText),score=scoreLead(allText);const payload={session_id:sessionId,last_request:query,transcript:messages,name:contact.name,phone:contact.phone,email:contact.email,lead_score:score,status:score>=70?'qualified':'new',last_seen_at:new Date().toISOString(),...intel,next_best_action:contact.phone?(score>=70?'Text now while intent is high.':'Follow up personally and clarify timing.'):(contact.name?'Capture mobile number next.':'Capture shopper name, then mobile number.')};const r=await fetch(`${url}/rest/v1/jon_rover_leads?on_conflict=session_id`,{method:"POST",headers:{apikey:key,Authorization:`Bearer ${key}`,"Content-Type":"application/json",Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(payload)}).catch(()=>null);if(r?.ok){const lead=(await r.json())?.[0];if(lead)await fetch(`${url}/rest/v1/crm_activities`,{method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,"Content-Type":"application/json"},body:JSON.stringify({lead_id:lead.id,type:'concierge',title:'AI concierge conversation',body:query,metadata:{score,name:contact.name,phone:contact.phone,email:contact.email}})}).catch(()=>{});}}
+async function saveCrm(sessionId:string,messages:ChatMessage[],query:string){
+  const url=process.env.SUPABASE_URL||process.env.NEXT_PUBLIC_SUPABASE_URL,key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if(!url||!key||!sessionId){console.error("CRM save skipped: missing Supabase config or session id");return;}
+  const headers={apikey:key,Authorization:`Bearer ${key}`,"Content-Type":"application/json"};
+  try{
+    let existing:any=null;
+    const existingResponse=await fetch(`${url}/rest/v1/jon_rover_leads?session_id=eq.${encodeURIComponent(sessionId)}&select=*&limit=1`,{headers,cache:"no-store"});
+    if(existingResponse.ok){const rows=await existingResponse.json();existing=Array.isArray(rows)?rows[0]??null:null;}
+
+    const allMessages:Array<ChatMessage>=Array.isArray(existing?.transcript)?existing.transcript:[];
+    const mergedTranscript=[...allMessages];
+    for(const m of messages){
+      const last=mergedTranscript[mergedTranscript.length-1];
+      if(!last||last.role!==m.role||last.content!==m.content)mergedTranscript.push(m);
+    }
+    const transcript=mergedTranscript.slice(-100);
+    const allText=transcript.map(m=>m.content).join("\n");
+    const contact=contactFrom(transcript),intel=intelligence(allText),score=Math.max(Number(existing?.lead_score||0),scoreLead(allText));
+    const payload:any={session_id:sessionId,last_request:query,transcript,lead_score:score,status:score>=70?'qualified':(existing?.status||'new'),last_seen_at:new Date().toISOString(),...intel,next_best_action:(contact.phone||existing?.phone)?(score>=70?'Text now while intent is high.':'Follow up personally and clarify timing.'):(contact.name||existing?.name?'Capture mobile number next.':'Capture shopper name, then mobile number.')};
+    if(contact.name)payload.name=contact.name;
+    if(contact.phone)payload.phone=contact.phone;
+    if(contact.email)payload.email=contact.email;
+
+    const r=await fetch(`${url}/rest/v1/jon_rover_leads?on_conflict=session_id`,{method:"POST",headers:{...headers,Prefer:"resolution=merge-duplicates,return=representation"},body:JSON.stringify(payload)});
+    if(!r.ok){const detail=await r.text().catch(()=>"");console.error("CRM lead upsert failed",r.status,detail.slice(0,1000));return;}
+    const lead=(await r.json())?.[0];
+    if(lead){
+      const activity=await fetch(`${url}/rest/v1/crm_activities`,{method:'POST',headers,body:JSON.stringify({lead_id:lead.id,type:'concierge',title:'AI concierge conversation',body:query,metadata:{score,name:lead.name||null,phone:lead.phone||null,email:lead.email||null}})});
+      if(!activity.ok){const detail=await activity.text().catch(()=>"");console.error("CRM activity insert failed",activity.status,detail.slice(0,500));}
+    }
+  }catch(error){console.error("CRM save failed",error);}
+}
 
 async function getInventory(origin:string,latest:string):Promise<Vehicle[]>{
   try{
@@ -46,7 +77,7 @@ async function getInventory(origin:string,latest:string):Promise<Vehicle[]>{
 export async function POST(request:NextRequest){
   try{
     const body=await request.json();
-    const messages=(Array.isArray(body?.messages)?body.messages:[]).filter((m:any)=>m&&["user","assistant"].includes(m.role)&&typeof m.content==="string").slice(-12) as ChatMessage[];
+    const messages=(Array.isArray(body?.messages)?body.messages:[]).filter((m:any)=>m&&["user","assistant"].includes(m.role)&&typeof m.content==="string").slice(-20) as ChatMessage[];
     const sessionId=String(body?.sessionId||"").slice(0,120);
     const latest=[...messages].reverse().find(m=>m.role==="user")?.content?.trim()||"";
     if(!latest)return NextResponse.json({error:"Message required"},{status:400});
