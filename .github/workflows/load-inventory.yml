@@ -7,18 +7,105 @@ on:
       - '.github/workflows/load-inventory.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger inventory sync
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser tooling
         run: |
-          set -e
-          RESPONSE=$(curl -sS -X POST \
-            -H 'Content-Type: application/json' \
-            -w '\n%{http_code}' \
-            'https://jon-rover-n66pe3882-jon0043-archs-projects.vercel.app/api/inventory/sync')
-          BODY=$(echo "$RESPONSE" | sed '$d')
-          CODE=$(echo "$RESPONSE" | tail -n1)
-          echo "$BODY"
-          test "$CODE" -ge 200 -a "$CODE" -lt 300
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Fetch and parse dealer inventory
+        run: |
+          python - <<'PY'
+          import asyncio, json, re
+          from pathlib import Path
+          from playwright.async_api import async_playwright
+
+          BASE='https://www.landroverwillowgrove.com/llm/inventory/'
+
+          def parse(text):
+              lines=[x.strip() for x in text.splitlines()]
+              out=[]
+              for i,line in enumerate(lines):
+                  m=re.search(r'VIN:\s*([A-HJ-NPR-Z0-9]{17})', line, re.I)
+                  if not m:
+                      continue
+                  vin=m.group(1).upper()
+                  prev=[x for x in lines[max(0,i-10):i] if x]
+                  condition=next((x for x in reversed(prev) if x in ('New','Used','Certified Used')),None)
+                  price=next((x for x in reversed(prev) if re.fullmatch(r'\$[\d,]+',x)),None)
+                  miles=next((x for x in reversed(prev) if re.fullmatch(r'[\d,]+\s+miles?',x,re.I)),None)
+                  if not (condition and price and miles):
+                      continue
+                  ci=max(j for j,x in enumerate(prev) if x==condition)
+                  title=None
+                  for x in reversed(prev[:ci]):
+                      if re.match(r'^(19|20)\d{2}\s+',x):
+                          title=x
+                          break
+                  if not title:
+                      continue
+                  out.append({
+                      'vin':vin,
+                      'title':title,
+                      'condition':condition,
+                      'mileage':int(re.sub(r'\D','',miles)),
+                      'price':int(re.sub(r'\D','',price)),
+                      'url':BASE,
+                      'image':None,
+                      'stock':None,
+                      'exterior':None,
+                      'interior':None,
+                      'interiorFamily':None,
+                      'features':[]
+                  })
+              return out
+
+          async def main():
+              async with async_playwright() as p:
+                  browser=await p.chromium.launch(headless=True)
+                  page=await browser.new_page(viewport={'width':1440,'height':1200}, user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36')
+                  vehicles={}
+                  expected=None
+                  for n in range(1,5):
+                      url=BASE if n==1 else f'{BASE}?limit=100&page={n}'
+                      await page.goto(url, wait_until='domcontentloaded', timeout=60000)
+                      await page.wait_for_timeout(5000)
+                      text=await page.locator('body').inner_text()
+                      if 'Enable JavaScript and cookies to continue' in text:
+                          await page.wait_for_timeout(10000)
+                          text=await page.locator('body').inner_text()
+                      if n==1:
+                          tm=re.search(r'([\d,]+)\s+vehicles?\s+found',text,re.I)
+                          if tm: expected=int(tm.group(1).replace(',',''))
+                      parsed=parse(text)
+                      print(f'page {n}: {len(parsed)} parsed')
+                      for v in parsed: vehicles[v['vin']]=v
+                      if expected and len(vehicles)>=expected: break
+                      if n>1 and not parsed: break
+                  await browser.close()
+                  data={'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'vehicles':list(vehicles.values())}
+                  if len(vehicles)<200:
+                      raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
+                  Path('data').mkdir(exist_ok=True)
+                  Path('data/inventory.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
+                  print(json.dumps({'expected':expected,'count':len(vehicles)}))
+
+          asyncio.run(main())
+          PY
+      - name: Commit inventory snapshot
+        run: |
+          git config user.name 'jon-rover-bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add data/inventory.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Refresh Willow Grove inventory snapshot'
+          git push
