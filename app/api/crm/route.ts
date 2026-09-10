@@ -70,3 +70,23 @@ export async function PATCH(req:NextRequest){
     return NextResponse.json({error:'Could not update CRM lead'},{status:502});
   }
 }
+
+export async function DELETE(req:NextRequest){
+  const c=config();
+  if(!c)return NextResponse.json({error:'CRM database not configured'},{status:503});
+  const id=req.nextUrl.searchParams.get('id');
+  if(!id)return NextResponse.json({error:'Lead id required'},{status:400});
+  try{
+    const r=await fetch(`${c.url}/rest/v1/jon_rover_leads?id=eq.${encodeURIComponent(id)}`,{method:'DELETE',headers:{...headers(c.key),'Prefer':'return=representation'}});
+    if(!r.ok){
+      const detail=await errorMessage(r);
+      console.error('CRM Supabase DELETE failed',r.status,detail);
+      return NextResponse.json({error:'Could not delete CRM lead',detail},{status:502});
+    }
+    const rows=await r.json();
+    return NextResponse.json({deleted:Array.isArray(rows)&&rows.length>0});
+  }catch(error){
+    console.error('CRM DELETE failed',error);
+    return NextResponse.json({error:'Could not delete CRM lead'},{status:502});
+  }
+}
