@@ -1,30 +1,42 @@
 /* Mobile homepage polish */
+.mobileMenuIcon,.mobileScrollCue,.mobileBreak{display:none}
 @media (max-width: 620px) {
-  .hero { min-height: 100svh; }
-  .nav.shell { width: calc(100% - 32px); margin-left: 16px; margin-right: 16px; padding-top: 20px; gap: 10px; align-items: start; }
-  .brandLockup { max-width: 52vw; gap: 3px; }
+  .hero { min-height: 100svh; height: 100svh; }
+  .nav.shell { width: calc(100% - 32px); margin-left: 16px; margin-right: 16px; padding-top: 20px; gap: 10px; align-items: start; grid-template-columns: 1fr auto auto; }
+  .brandLockup { max-width: 48vw; gap: 3px; }
   .brandLockup .brand { font-size: 14px; letter-spacing: .24em; white-space: nowrap; }
-  .brandLockup .eyebrow { font-size: 7px; line-height: 1.45; letter-spacing: .2em; max-width: 190px; }
-  .navRoverButton { min-height: 44px; padding: 0 15px; font-size: 8px; letter-spacing: .16em; white-space: nowrap; }
+  .brandLockup .eyebrow { font-size: 7px; line-height: 1.45; letter-spacing: .2em; max-width: 170px; }
+  .navRoverButton { min-height: 46px; padding: 0 15px; font-size: 8px; letter-spacing: .16em; white-space: nowrap; }
+  .mobileMenuIcon { display:flex; width:36px; height:46px; border:0; padding:11px 2px; background:transparent; flex-direction:column; justify-content:center; gap:5px; }
+  .mobileMenuIcon span { display:block; width:28px; height:2px; background:#111714; }
 
   .heroImage { inset: 0; }
-  .heroImage img { object-position: 61% center !important; }
-  .heroShade { background: linear-gradient(90deg,rgba(245,240,231,.96) 0%,rgba(245,240,231,.82) 34%,rgba(245,240,231,.18) 72%),linear-gradient(180deg,rgba(245,240,231,.18) 0%,transparent 38%,rgba(0,0,0,.08) 100%); }
+  .heroImage img { object-position: 69% center !important; }
+  .heroShade { background: linear-gradient(90deg,rgba(245,240,231,.91) 0%,rgba(245,240,231,.70) 38%,rgba(245,240,231,.08) 76%),linear-gradient(180deg,rgba(245,240,231,.10) 0%,transparent 42%,rgba(0,0,0,.10) 100%); }
 
-  .heroCopy { margin-left: 20px; width: calc(100% - 40px); padding-top: 20vh; }
-  .heroKicker { margin: 0 0 16px; font-size: 8px; letter-spacing: .24em; }
-  .heroCopy h1 { max-width: 86%; margin: 0 0 20px; font-size: clamp(54px,15vw,68px); line-height: .88; letter-spacing: .035em; }
-  .heroLead { max-width: 88%; margin: 0 0 16px; font-size: 9px; line-height: 1.55; letter-spacing: .07em; text-shadow: 0 1px 12px rgba(245,240,231,.9); }
+  .heroCopy { margin-left: 20px; width: calc(100% - 40px); padding-top: 19.5vh; }
+  .heroKicker { margin: 0 0 18px; font-size: 8px; letter-spacing: .24em; }
+  .heroCopy h1 { max-width: 86%; margin: 0 0 24px; font-size: clamp(56px,15.6vw,72px); line-height: .86; letter-spacing: .035em; }
+  .mobileBreak { display:block; }
+  .heroLead { max-width: 78%; margin: 0; font-size: 9px; line-height: 1.58; letter-spacing: .075em; text-shadow: 0 1px 12px rgba(245,240,231,.92); }
 
-  .heroVehicleSearch { width: 100%; padding: 7px 7px 7px 17px !important; background: rgba(247,244,237,.72) !important; }
-  .heroVehicleSearchBar { grid-template-columns: minmax(0,1fr) 48px !important; gap: 7px !important; }
-  .heroVehicleSearchBar input { min-width: 0; width: 100%; padding: 8px 0 !important; font-size: 14px !important; outline: none; }
-  .heroVehicleSearchBar button { width: 48px !important; height: 48px !important; min-width: 48px; padding: 0 !important; border: 1px solid rgba(16,21,19,.18) !important; border-radius: 50% !important; background: #111714 !important; color: #fff !important; appearance: none; -webkit-appearance: none; box-shadow: none !important; }
+  .heroVehicleSearch { position:absolute!important; top:64.5vh; left:20px; width:calc(100vw - 40px)!important; margin:0!important; padding:8px 8px 8px 18px!important; border-radius:999px!important; background:rgba(210,208,203,.30)!important; border:1px solid rgba(255,255,255,.86)!important; backdrop-filter:blur(18px) saturate(110%)!important; -webkit-backdrop-filter:blur(18px) saturate(110%)!important; box-shadow:0 18px 48px rgba(15,20,18,.12)!important; }
+  .heroVehicleSearchBar { grid-template-columns:minmax(0,1fr) 56px!important; gap:8px!important; }
+  .heroVehicleSearchBar:before { content:'✦'; align-self:center; justify-self:start; font-size:18px; color:#fff; margin-right:4px; text-shadow:0 1px 10px rgba(0,0,0,.22); position:absolute; left:20px; }
+  .heroVehicleSearchBar input { min-width:0; width:100%; padding:9px 0 9px 34px!important; font-size:15px!important; color:#fff; text-shadow:0 1px 10px rgba(0,0,0,.18); outline:none; }
+  .heroVehicleSearchBar input::placeholder { color:rgba(255,255,255,.92)!important; }
+  .heroVehicleSearchBar button { width:56px!important; height:56px!important; min-width:56px; padding:0!important; border:1px solid rgba(255,255,255,.68)!important; border-radius:50%!important; background:rgba(9,17,14,.88)!important; color:#fff!important; appearance:none; -webkit-appearance:none; box-shadow:none!important; }
+
+  .mobileScrollCue { display:flex; position:absolute; left:22px; bottom:22px; z-index:5; align-items:center; gap:12px; font-size:8px; letter-spacing:.22em; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,.35); }
+  .mobileScrollCue span { display:block; width:1px; height:54px; background:rgba(255,255,255,.78); }
 }
 
 @media (max-width: 390px) {
-  .brandLockup .eyebrow { font-size: 6.5px; max-width: 160px; }
-  .navRoverButton { padding: 0 12px; font-size: 7.5px; }
-  .heroCopy { padding-top: 17vh; }
+  .brandLockup .eyebrow { font-size: 6.5px; max-width: 150px; }
+  .navRoverButton { padding: 0 11px; font-size: 7.2px; }
+  .mobileMenuIcon { width:32px; }
+  .mobileMenuIcon span { width:24px; }
+  .heroCopy { padding-top: 18vh; }
   .heroCopy h1 { font-size: 52px; }
+  .heroVehicleSearch { top:63.5vh; }
 }
