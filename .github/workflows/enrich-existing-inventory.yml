@@ -21,208 +21,153 @@ jobs:
           python-version: '3.12'
       - name: Install enrichment tools
         run: pip install requests beautifulsoup4
-      - name: Enrich existing 246-vehicle snapshot
+      - name: Enrich saved inventory from Cars.com
         run: |
           python - <<'PY'
-          import concurrent.futures
-          import json
-          import re
-          import time
+          import concurrent.futures, json, re
           from datetime import datetime, timezone
           from pathlib import Path
-          from urllib.parse import urlparse
-
+          from urllib.parse import urljoin, urlparse
           import requests
           from bs4 import BeautifulSoup
 
-          SNAPSHOT = Path('data/inventory.json')
-          UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36'
-          session = requests.Session()
-          session.headers.update({'User-Agent': UA, 'Accept-Language':'en-US,en;q=0.9'})
+          SNAPSHOT=Path('data/inventory.json')
+          DEALER='https://www.cars.com/dealers/5378273/jaguar-land-rover-of-willow-grove/inventory/'
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36'
+          S=requests.Session(); S.headers.update({'User-Agent':UA,'Accept-Language':'en-US,en;q=0.9'})
+          data=json.loads(SNAPSHOT.read_text(encoding='utf-8'))
+          vehicles=data.get('vehicles') or []
+          if len(vehicles)<200: raise SystemExit(f'Expected full saved inventory, found {len(vehicles)}')
+          saved={str(v.get('vin','')).upper():v for v in vehicles if v.get('vin')}
 
-          data = json.loads(SNAPSHOT.read_text(encoding='utf-8'))
-          vehicles = data.get('vehicles') or []
-          if len(vehicles) < 200:
-              raise SystemExit(f'Expected saved full inventory, found only {len(vehicles)} rows; refusing enrichment')
+          def clean(v):
+              if v is None:return None
+              x=re.sub(r'\s+',' ',str(v)).strip(' |:-\n\t')
+              return x[:120] or None
 
-          VIN_RE = re.compile(r'\b[A-HJ-NPR-Z0-9]{17}\b', re.I)
-          COLOR_PATTERNS = {
-              'exterior': [
-                  r'Exterior(?: Color)?\s*[:|\-]\s*([^\n|]{2,80})',
-                  r'Exterior Color\s+([^\n]{2,80})',
-                  r'Ext\.?(?: Color)?\s*[:|\-]\s*([^\n|]{2,80})',
-              ],
-              'interior': [
-                  r'Interior(?: Color)?\s*[:|\-]\s*([^\n|]{2,80})',
-                  r'Interior Color\s+([^\n]{2,80})',
-                  r'Int\.?(?: Color)?\s*[:|\-]\s*([^\n|]{2,80})',
-              ],
-          }
-
-          def clean_value(v):
-              if not v: return None
-              v = re.sub(r'\s+', ' ', str(v)).strip(' \t\r\n|:-')
-              v = re.split(r'\s{2,}|\b(?:VIN|Stock|Mileage|Price|Engine|Transmission|Drivetrain)\b', v, maxsplit=1, flags=re.I)[0].strip()
-              return v[:80] or None
-
-          def interior_family(v):
-              x=(v or '').lower()
-              if not x:return None
-              if 'caraway' in x:return 'tan'
-              if 'light cloud' in x:return 'off-white'
-              if 'ebony' in x:return 'black'
-              if 'deep garnet' in x:return 'red-wine'
-              if re.search(r'tan|beige|camel|caramel',x):return 'tan'
-              if re.search(r'off[- ]?white|ivory|cream',x):return 'off-white'
-              if 'black' in x:return 'black'
-              if re.search(r'burgundy|wine|garnet|oxblood',x):return 'red-wine'
-              return None
-
-          def title_from_url(url, fallback):
+          def title_from_url(v):
+              url=v.get('url') or ''
               try:
-                  parts=[p for p in urlparse(url).path.split('/') if p]
-                  slug=next((p for p in parts if re.match(r'^(?:new|used|certified)-\d{4}-',p,re.I)),None)
-                  if not slug:return fallback
+                  slug=next((p for p in urlparse(url).path.split('/') if re.match(r'^(?:new|used|certified)-\d{4}-',p,re.I)),None)
+                  if not slug:return v.get('title')
                   s=re.sub(r'^(new|used|certified)-','',slug,flags=re.I)
                   s=re.sub(r'-[a-hj-npr-z0-9]{17}$','',s,flags=re.I)
-                  words=s.split('-')
-                  pretty=[]
-                  keep_upper={'suv':'SUV','awd':'AWD','4wd':'4WD','se':'SE','hse':'HSE','sv':'SV','svr':'SVR','p250':'P250','p300':'P300','p360':'P360','p400':'P400','p460e':'P460e','p530':'P530','octa':'OCTA'}
-                  for i,w in enumerate(words):
-                      if i==0 and re.fullmatch(r'20\d{2}|19\d{2}',w): pretty.append(w)
-                      elif w.lower() in keep_upper: pretty.append(keep_upper[w.lower()])
-                      elif w.lower()=='land': pretty.append('Land')
-                      elif w.lower()=='rover': pretty.append('Rover')
-                      elif w.isdigit(): pretty.append(w)
-                      else: pretty.append(w.capitalize())
-                  return ' '.join(pretty)
-              except Exception:return fallback
+                  words=s.split('-'); upper={'suv':'SUV','awd':'AWD','4wd':'4WD','se':'SE','hse':'HSE','sv':'SV','svr':'SVR','p250':'P250','p300':'P300','p360':'P360','p400':'P400','p460e':'P460e','p530':'P530','octa':'OCTA','x-dynamic':'X-Dynamic'}
+                  return ' '.join(upper.get(w.lower(), w if w.isdigit() else w.capitalize()) for w in words)
+              except:return v.get('title')
 
-          def extract_jsonld(soup):
-              objs=[]
-              for tag in soup.find_all('script', type=lambda x: x and 'ld+json' in x):
-                  try:
-                      raw=json.loads(tag.string or tag.get_text() or '{}')
-                      if isinstance(raw,list): objs.extend(raw)
-                      else: objs.append(raw)
-                  except Exception: pass
-              return objs
+          # Fix make/model/trim immediately from the dealer VDP URLs we already saved.
+          for v in vehicles:
+              t=title_from_url(v)
+              if t and len(t.split())>1:v['title']=t
 
-          def walk(obj):
-              if isinstance(obj,dict):
-                  yield obj
-                  for v in obj.values(): yield from walk(v)
-              elif isinstance(obj,list):
-                  for v in obj: yield from walk(v)
+          def get(url,timeout=20):
+              try:
+                  r=S.get(url,timeout=timeout)
+                  if r.ok and len(r.text)>500:return r.text
+              except Exception:pass
+              return ''
 
-          def fetch_text(url):
-              attempts=[url, 'https://r.jina.ai/http://' + url.replace('https://','').replace('http://',''), 'https://r.jina.ai/https://' + url.replace('https://','').replace('http://','')]
-              for target in attempts:
-                  try:
-                      r=session.get(target,timeout=18,headers={'Accept':'text/html,text/plain,*/*'})
-                      if r.ok and len(r.text)>800 and 'Just a moment' not in r.text:
-                          return r.text, ('html' if '<html' in r.text[:500].lower() else 'text')
-                  except Exception: pass
-              return '', 'text'
+          # Cars.com is a stable secondary copy of this dealership's listings and exposes the
+          # metadata the Dealer Inspire cards hide from automated requests.
+          detail_links=[]
+          for page in range(1,12):
+              html=get(f'{DEALER}?page={page}&page_size=72')
+              if not html: break
+              soup=BeautifulSoup(html,'html.parser')
+              found=[]
+              for a in soup.select('a[href]'):
+                  h=a.get('href') or ''
+                  if '/vehicledetail/' in h:
+                      u=urljoin('https://www.cars.com',h.split('?')[0])
+                      if u not in detail_links: detail_links.append(u); found.append(u)
+              print('cars page',page,'new links',len(found),'total',len(detail_links))
+              if not found: break
 
-          def find_pattern(text, patterns):
-              for p in patterns:
+          def after_label(text,label):
+              pats=[
+                rf'{label}\s*\n\s*([^\n]+)',
+                rf'{label}\s*:?\s+([^\n|]+)',
+              ]
+              for p in pats:
                   m=re.search(p,text,re.I)
-                  if m:
-                      val=clean_value(m.group(1))
-                      if val:return val
+                  if m:return clean(m.group(1))
               return None
 
-          def enrich(v):
-              out=dict(v)
-              out['title']=title_from_url(out.get('url') or '', out.get('title') or '')
-              url=out.get('url') or ''
-              if not url:return out
-              raw,kind=fetch_text(url)
-              if not raw:return out
-              text=raw
-              soup=None
-              if kind=='html':
-                  soup=BeautifulSoup(raw,'html.parser')
-                  text=soup.get_text('\n',strip=True)
-                  for obj in extract_jsonld(soup):
-                      for d in walk(obj):
-                          if not isinstance(d,dict):continue
-                          if not out.get('mileage'):
-                              for k in ('mileageFromOdometer','mileage','odometer'):
-                                  val=d.get(k)
-                                  if isinstance(val,dict): val=val.get('value')
-                                  if val is not None:
-                                      m=re.search(r'[\d,]+',str(val))
-                                      if m: out['mileage']=int(m.group().replace(',','')); break
-                          if not out.get('exterior'):
-                              out['exterior']=clean_value(d.get('color') or d.get('vehicleExteriorColor') or d.get('exteriorColor'))
-                          if not out.get('interior'):
-                              out['interior']=clean_value(d.get('vehicleInteriorColor') or d.get('interiorColor'))
-                          if not out.get('stock'):
-                              out['stock']=clean_value(d.get('sku') or d.get('stockNumber'))
-                  images=list(out.get('images') or [])
-                  for meta in soup.find_all('meta'):
-                      prop=(meta.get('property') or meta.get('name') or '').lower()
-                      content=meta.get('content') or ''
-                      if prop in ('og:image','twitter:image') and content.startswith('http'):images.append(content)
-                  for img in soup.find_all('img'):
-                      for k in ('src','data-src','data-lazy-src','data-original'):
-                          u=img.get(k)
-                          if u and u.startswith('http') and any(x in u.lower() for x in ('vehicle','inventory','carscommerce','autoipacket')):images.append(u)
-                  ded=[]
-                  for u in images:
-                      if not u or 'gallery-image-icon' in u or u in ded:continue
-                      ded.append(u)
-                  if ded:
-                      out['images']=ded[:50]
-                      out['image']=ded[0]
-              if not out.get('stock'):
-                  out['stock']=find_pattern(text,[r'Stock(?: Number| #| No\.?|:)\s*[:#]?\s*([A-Z0-9-]{3,20})',r'Stock\s+([A-Z0-9-]{4,20})'])
-              if out.get('mileage') in (None,0) and str(out.get('condition','')).lower()!='new':
-                  m=re.search(r'(?:Mileage|Miles|Odometer)\s*[:|\-]?\s*([\d,]+)',text,re.I)
-                  if not m:m=re.search(r'([\d,]+)\s+(?:miles|mi)\b',text,re.I)
-                  if m: out['mileage']=int(m.group(1).replace(',',''))
-              if not out.get('exterior'):
-                  out['exterior']=find_pattern(text,COLOR_PATTERNS['exterior'])
-              if not out.get('interior'):
-                  out['interior']=find_pattern(text,COLOR_PATTERNS['interior'])
-              out['interiorFamily']=interior_family(out.get('interior'))
-              return out
+          def parse_detail(url):
+              html=get(url,25)
+              if not html:return None
+              soup=BeautifulSoup(html,'html.parser')
+              text=soup.get_text('\n',strip=True)
+              m=re.search(r'\bVIN\s*:?\s*([A-HJ-NPR-Z0-9]{17})\b',text,re.I)
+              if not m:
+                  m=re.search(r'"vin"\s*:\s*"([A-HJ-NPR-Z0-9]{17})"',html,re.I)
+              if not m:return None
+              vin=m.group(1).upper()
+              title=None
+              h=soup.select_one('h1')
+              if h:title=clean(h.get_text(' ',strip=True))
+              if not title:
+                  mm=re.search(r'"name"\s*:\s*"([^"]{8,100})"',html)
+                  if mm:title=clean(mm.group(1))
+              mileage=None
+              mm=re.search(r'([\d,]+)\s*mi\.?\b',text,re.I)
+              if mm:
+                  try:mileage=int(mm.group(1).replace(',',''))
+                  except:pass
+              ext=after_label(text,r'Ext\.?\s*color') or after_label(text,r'Exterior(?: color)?')
+              interior=after_label(text,r'Int\.?\s*color') or after_label(text,r'Interior(?: color)?')
+              stock=after_label(text,r'Stock\s*#') or after_label(text,r'Stock(?: number)?')
+              images=[]
+              for meta in soup.find_all('meta'):
+                  prop=(meta.get('property') or meta.get('name') or '').lower(); c=meta.get('content') or ''
+                  if prop in ('og:image','twitter:image') and c.startswith('http'):images.append(c)
+              return {'vin':vin,'title':title,'mileage':mileage,'exterior':ext,'interior':interior,'stock':stock,'images':images[:20]}
 
-          enriched=[]
-          done=0
-          with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
-              future_map={ex.submit(enrich,v):v.get('vin') for v in vehicles}
-              for fut in concurrent.futures.as_completed(future_map):
-                  vin=future_map[fut]
-                  try: enriched.append(fut.result())
-                  except Exception as e:
-                      base=next(v for v in vehicles if v.get('vin')==vin)
-                      enriched.append(base)
-                      print('enrich failed',vin,type(e).__name__,str(e)[:120])
-                  done+=1
-                  if done%25==0: print('enriched',done,'of',len(vehicles))
+          details=[]
+          with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
+              futs=[ex.submit(parse_detail,u) for u in detail_links]
+              for i,f in enumerate(concurrent.futures.as_completed(futs),1):
+                  try:
+                      d=f.result()
+                      if d:details.append(d)
+                  except Exception as e: print('detail error',type(e).__name__,str(e)[:80])
+                  if i%25==0:print('detail pages',i,'parsed',len(details))
 
-          byvin={v.get('vin'):v for v in enriched}
-          ordered=[byvin.get(v.get('vin'),v) for v in vehicles]
+          matched=0
+          for d in details:
+              v=saved.get(d['vin'])
+              if not v:continue
+              matched+=1
+              if d.get('title') and re.search(r'\b(19|20)\d{2}\b',d['title']):v['title']=d['title']
+              if d.get('mileage') is not None:v['mileage']=d['mileage']
+              if d.get('exterior'):v['exterior']=d['exterior']
+              if d.get('interior'):v['interior']=d['interior']
+              if d.get('stock'):v['stock']=d['stock']
+              if d.get('images'):
+                  old=list(v.get('images') or []); merged=[]
+                  for u in d['images']+old:
+                      if u and 'gallery-image-icon' not in u and u not in merged:merged.append(u)
+                  if merged:v['images']=merged[:50];v['image']=merged[0]
+              x=(v.get('interior') or '').lower()
+              if 'caraway' in x:v['interiorFamily']='tan'
+              elif 'light cloud' in x:v['interiorFamily']='off-white'
+              elif 'ebony' in x:v['interiorFamily']='black'
+              elif 'deep garnet' in x:v['interiorFamily']='red-wine'
+
           stats={
-              'count':len(ordered),
-              'good_titles':sum(1 for v in ordered if len((v.get('title') or '').split())>=3),
-              'mileage':sum(1 for v in ordered if v.get('mileage') is not None),
-              'stock':sum(1 for v in ordered if v.get('stock')),
-              'exterior':sum(1 for v in ordered if v.get('exterior')),
-              'interior':sum(1 for v in ordered if v.get('interior')),
-              'photos':sum(1 for v in ordered if v.get('image')),
+            'count':len(vehicles),'cars_links':len(detail_links),'matched':matched,
+            'good_titles':sum(1 for v in vehicles if len((v.get('title') or '').split())>=3),
+            'mileage_known':sum(1 for v in vehicles if v.get('mileage') is not None),
+            'mileage_nonzero':sum(1 for v in vehicles if isinstance(v.get('mileage'),int) and v.get('mileage')>0),
+            'stock':sum(1 for v in vehicles if v.get('stock')),
+            'exterior':sum(1 for v in vehicles if v.get('exterior')),
+            'interior':sum(1 for v in vehicles if v.get('interior')),
+            'photos':sum(1 for v in vehicles if v.get('image')),
           }
           print('ENRICHMENT STATS',json.dumps(stats))
-          if stats['good_titles'] < int(len(ordered)*0.9):
-              raise SystemExit(f"Only {stats['good_titles']} useful titles; refusing to replace snapshot")
-
-          data['vehicles']=ordered
-          data['count']=len(ordered)
-          data['fetchedAt']=datetime.now(timezone.utc).isoformat()
-          data['enrichmentStats']=stats
+          # Never discard the existing full inventory. Commit any verified enrichment we found.
+          data['vehicles']=vehicles;data['count']=len(vehicles);data['fetchedAt']=datetime.now(timezone.utc).isoformat();data['enrichmentStats']=stats
           SNAPSHOT.write_text(json.dumps(data,indent=2),encoding='utf-8')
           PY
       - name: Commit enriched inventory
@@ -231,6 +176,6 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git add data/inventory.json
           git diff --cached --quiet && exit 0
-          git commit -m 'Enrich saved Willow Grove inventory metadata'
+          git commit -m 'Enrich Willow Grove inventory from secondary dealer listings'
           git pull --rebase origin main
           git push
