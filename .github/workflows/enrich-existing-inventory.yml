@@ -20,153 +20,129 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install enrichment tools
-        run: pip install requests beautifulsoup4
-      - name: Enrich saved inventory from Cars.com
+        run: pip install requests
+      - name: Enrich colors and mileage
         run: |
           python - <<'PY'
-          import concurrent.futures, json, re
-          from datetime import datetime, timezone
+          import json,re,time
+          from datetime import datetime,timezone
           from pathlib import Path
-          from urllib.parse import urljoin, urlparse
+          from urllib.parse import quote
           import requests
-          from bs4 import BeautifulSoup
 
           SNAPSHOT=Path('data/inventory.json')
-          DEALER='https://www.cars.com/dealers/5378273/jaguar-land-rover-of-willow-grove/inventory/'
-          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36'
-          S=requests.Session(); S.headers.update({'User-Agent':UA,'Accept-Language':'en-US,en;q=0.9'})
           data=json.loads(SNAPSHOT.read_text(encoding='utf-8'))
           vehicles=data.get('vehicles') or []
-          if len(vehicles)<200: raise SystemExit(f'Expected full saved inventory, found {len(vehicles)}')
-          saved={str(v.get('vin','')).upper():v for v in vehicles if v.get('vin')}
+          if len(vehicles)<200: raise SystemExit(f'Expected full inventory, found {len(vehicles)}')
+          byvin={str(v.get('vin','')).upper():v for v in vehicles if v.get('vin')}
+          S=requests.Session();S.headers.update({'User-Agent':'Mozilla/5.0','Accept-Language':'en-US,en;q=0.9'})
 
-          def clean(v):
-              if v is None:return None
-              x=re.sub(r'\s+',' ',str(v)).strip(' |:-\n\t')
-              return x[:120] or None
+          def clean(x):
+              if not x:return None
+              x=re.sub(r'\s+',' ',str(x)).strip(' |:-*#\n\t')
+              return x[:100] or None
 
-          def title_from_url(v):
-              url=v.get('url') or ''
-              try:
-                  slug=next((p for p in urlparse(url).path.split('/') if re.match(r'^(?:new|used|certified)-\d{4}-',p,re.I)),None)
-                  if not slug:return v.get('title')
-                  s=re.sub(r'^(new|used|certified)-','',slug,flags=re.I)
-                  s=re.sub(r'-[a-hj-npr-z0-9]{17}$','',s,flags=re.I)
-                  words=s.split('-'); upper={'suv':'SUV','awd':'AWD','4wd':'4WD','se':'SE','hse':'HSE','sv':'SV','svr':'SVR','p250':'P250','p300':'P300','p360':'P360','p400':'P400','p460e':'P460e','p530':'P530','octa':'OCTA','x-dynamic':'X-Dynamic'}
-                  return ' '.join(upper.get(w.lower(), w if w.isdigit() else w.capitalize()) for w in words)
-              except:return v.get('title')
-
-          # Fix make/model/trim immediately from the dealer VDP URLs we already saved.
-          for v in vehicles:
-              t=title_from_url(v)
-              if t and len(t.split())>1:v['title']=t
-
-          def get(url,timeout=20):
-              try:
-                  r=S.get(url,timeout=timeout)
-                  if r.ok and len(r.text)>500:return r.text
-              except Exception:pass
-              return ''
-
-          # Cars.com is a stable secondary copy of this dealership's listings and exposes the
-          # metadata the Dealer Inspire cards hide from automated requests.
-          detail_links=[]
-          for page in range(1,12):
-              html=get(f'{DEALER}?page={page}&page_size=72')
-              if not html: break
-              soup=BeautifulSoup(html,'html.parser')
-              found=[]
-              for a in soup.select('a[href]'):
-                  h=a.get('href') or ''
-                  if '/vehicledetail/' in h:
-                      u=urljoin('https://www.cars.com',h.split('?')[0])
-                      if u not in detail_links: detail_links.append(u); found.append(u)
-              print('cars page',page,'new links',len(found),'total',len(detail_links))
-              if not found: break
-
-          def after_label(text,label):
-              pats=[
-                rf'{label}\s*\n\s*([^\n]+)',
-                rf'{label}\s*:?\s+([^\n|]+)',
+          def model_slug(title):
+              t=(title or '').lower()
+              year=re.search(r'\b(20\d{2}|19\d{2})\b',t)
+              if not year:return None
+              y=year.group(1)
+              mapping=[
+                ('range rover sport',f'land_rover-range_rover_sport-{y}'),
+                ('range rover evoque',f'land_rover-range_rover_evoque-{y}'),
+                ('range rover velar',f'land_rover-range_rover_velar-{y}'),
+                ('discovery sport',f'land_rover-discovery_sport-{y}'),
+                ('defender',f'land_rover-defender-{y}'),
+                ('discovery',f'land_rover-discovery-{y}'),
+                ('range rover',f'land_rover-range_rover-{y}'),
+                ('f-pace',f'jaguar-f-pace-{y}'),
+                ('f pace',f'jaguar-f-pace-{y}'),
+                ('e-pace',f'jaguar-e-pace-{y}'),
+                ('x4',f'bmw-x4-{y}'),('x5',f'bmw-x5-{y}'),('x3',f'bmw-x3-{y}'),
+                ('gle',f'mercedes_benz-gle_class-{y}'),('gls',f'mercedes_benz-gls_class-{y}'),
+                ('q7',f'audi-q7-{y}'),('q8',f'audi-q8-{y}'),('cayenne',f'porsche-cayenne-{y}')
               ]
-              for p in pats:
-                  m=re.search(p,text,re.I)
-                  if m:return clean(m.group(1))
+              for needle,slug in mapping:
+                  if needle in t:return slug
               return None
 
-          def parse_detail(url):
-              html=get(url,25)
-              if not html:return None
-              soup=BeautifulSoup(html,'html.parser')
-              text=soup.get_text('\n',strip=True)
-              m=re.search(r'\bVIN\s*:?\s*([A-HJ-NPR-Z0-9]{17})\b',text,re.I)
-              if not m:
-                  m=re.search(r'"vin"\s*:\s*"([A-HJ-NPR-Z0-9]{17})"',html,re.I)
-              if not m:return None
-              vin=m.group(1).upper()
-              title=None
-              h=soup.select_one('h1')
-              if h:title=clean(h.get_text(' ',strip=True))
-              if not title:
-                  mm=re.search(r'"name"\s*:\s*"([^"]{8,100})"',html)
-                  if mm:title=clean(mm.group(1))
-              mileage=None
-              mm=re.search(r'([\d,]+)\s*mi\.?\b',text,re.I)
-              if mm:
-                  try:mileage=int(mm.group(1).replace(',',''))
-                  except:pass
-              ext=after_label(text,r'Ext\.?\s*color') or after_label(text,r'Exterior(?: color)?')
-              interior=after_label(text,r'Int\.?\s*color') or after_label(text,r'Interior(?: color)?')
-              stock=after_label(text,r'Stock\s*#') or after_label(text,r'Stock(?: number)?')
-              images=[]
-              for meta in soup.find_all('meta'):
-                  prop=(meta.get('property') or meta.get('name') or '').lower(); c=meta.get('content') or ''
-                  if prop in ('og:image','twitter:image') and c.startswith('http'):images.append(c)
-              return {'vin':vin,'title':title,'mileage':mileage,'exterior':ext,'interior':interior,'stock':stock,'images':images[:20]}
+          def jina(url):
+              target='https://r.jina.ai/https://' + url.replace('https://','').replace('http://','')
+              try:
+                  r=S.get(target,timeout=35)
+                  if r.ok and len(r.text)>1000:return r.text
+                  print('jina fail',r.status,url)
+              except Exception as e:print('jina error',type(e).__name__,url)
+              return ''
 
-          details=[]
-          with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
-              futs=[ex.submit(parse_detail,u) for u in detail_links]
-              for i,f in enumerate(concurrent.futures.as_completed(futs),1):
-                  try:
-                      d=f.result()
-                      if d:details.append(d)
-                  except Exception as e: print('detail error',type(e).__name__,str(e)[:80])
-                  if i%25==0:print('detail pages',i,'parsed',len(details))
+          def around(text,start,window=1800):return text[max(0,start-window):min(len(text),start+window)]
+          def labeled(block,*labels):
+              for label in labels:
+                  pats=[rf'{label}\s*\n\s*([^\n]+)',rf'{label}\s*:?\s+([^\n|]+)']
+                  for p in pats:
+                      m=re.search(p,block,re.I)
+                      if m:
+                          v=clean(m.group(1))
+                          if v:return v
+              return None
 
-          matched=0
-          for d in details:
-              v=saved.get(d['vin'])
-              if not v:continue
-              matched+=1
-              if d.get('title') and re.search(r'\b(19|20)\d{2}\b',d['title']):v['title']=d['title']
-              if d.get('mileage') is not None:v['mileage']=d['mileage']
-              if d.get('exterior'):v['exterior']=d['exterior']
-              if d.get('interior'):v['interior']=d['interior']
-              if d.get('stock'):v['stock']=d['stock']
-              if d.get('images'):
-                  old=list(v.get('images') or []); merged=[]
-                  for u in d['images']+old:
-                      if u and 'gallery-image-icon' not in u and u not in merged:merged.append(u)
-                  if merged:v['images']=merged[:50];v['image']=merged[0]
-              x=(v.get('interior') or '').lower()
-              if 'caraway' in x:v['interiorFamily']='tan'
-              elif 'light cloud' in x:v['interiorFamily']='off-white'
-              elif 'ebony' in x:v['interiorFamily']='black'
-              elif 'deep garnet' in x:v['interiorFamily']='red-wine'
+          slugs=sorted({s for v in vehicles if (s:=model_slug(v.get('title')))})
+          print('shopping families',len(slugs),slugs)
+          matched=set(); pages=0
+          for slug in slugs:
+              for page in range(1,7):
+                  url=f'https://www.cars.com/shopping/{slug}/abington-pa/?page={page}&page_size=100&maximum_distance=100'
+                  text=jina(url);pages+=1
+                  if not text:break
+                  vins=[m for m in re.finditer(r'\b[A-HJ-NPR-Z0-9]{17}\b',text,re.I)]
+                  local=0
+                  for m in vins:
+                      vin=m.group(0).upper();v=byvin.get(vin)
+                      if not v:continue
+                      block=around(text,m.start(),2200)
+                      # Only accept Willow Grove rows when the dealer name is visible near the VIN.
+                      if 'Willow Grove' not in block and 'willow grove' not in block.lower():continue
+                      ext=labeled(block,r'Ext\.?\s*color',r'Exterior(?: color)?')
+                      interior=labeled(block,r'Int\.?\s*color',r'Interior(?: color)?')
+                      stock=labeled(block,r'Stock\s*#',r'Stock(?: number)?')
+                      mm=re.search(r'([\d,]+)\s*(?:mi\.?|miles)\b',block,re.I)
+                      mileage=int(mm.group(1).replace(',','')) if mm else None
+                      if ext and len(ext)<80:v['exterior']=ext
+                      if interior and len(interior)<80:v['interior']=interior
+                      if stock and len(stock)<30:v['stock']=stock
+                      if mileage is not None:v['mileage']=mileage
+                      x=(v.get('interior') or '').lower()
+                      if 'ebony' in x or 'black' in x:v['interiorFamily']='black'
+                      elif 'caraway' in x or any(z in x for z in ['tan','beige']):v['interiorFamily']='tan'
+                      elif 'light cloud' in x or any(z in x for z in ['ivory','cream']):v['interiorFamily']='off-white'
+                      elif any(z in x for z in ['garnet','burgundy','wine']):v['interiorFamily']='red-wine'
+                      matched.add(vin);local+=1
+                  print(slug,'page',page,'saved matches',local,'total',len(matched))
+                  # Later pages become irrelevant quickly; stop after an empty matching page beyond page 1.
+                  if page>1 and local==0:break
+                  time.sleep(.4)
+
+          # Use the dealer's indexed LLM pages as a second pass for actual odometer values.
+          for p in range(1,8):
+              for kind in ('new','used'):
+                  text=jina(f'https://www.landroverwillowgrove.com/llm/inventory/?_p={p}&type={kind}')
+                  if not text:continue
+                  for m in re.finditer(r'VIN:\s*([A-HJ-NPR-Z0-9]{17})',text,re.I):
+                      vin=m.group(1).upper();v=byvin.get(vin)
+                      if not v:continue
+                      block=text[max(0,m.start()-700):m.end()+100]
+                      mm=list(re.finditer(r'([\d,]+)\s+miles\b',block,re.I))
+                      if mm:v['mileage']=int(mm[-1].group(1).replace(',',''))
 
           stats={
-            'count':len(vehicles),'cars_links':len(detail_links),'matched':matched,
-            'good_titles':sum(1 for v in vehicles if len((v.get('title') or '').split())>=3),
-            'mileage_known':sum(1 for v in vehicles if v.get('mileage') is not None),
+            'count':len(vehicles),'pages_checked':pages,'matched_secondary':len(matched),
             'mileage_nonzero':sum(1 for v in vehicles if isinstance(v.get('mileage'),int) and v.get('mileage')>0),
-            'stock':sum(1 for v in vehicles if v.get('stock')),
             'exterior':sum(1 for v in vehicles if v.get('exterior')),
             'interior':sum(1 for v in vehicles if v.get('interior')),
+            'stock':sum(1 for v in vehicles if v.get('stock')),
             'photos':sum(1 for v in vehicles if v.get('image')),
           }
           print('ENRICHMENT STATS',json.dumps(stats))
-          # Never discard the existing full inventory. Commit any verified enrichment we found.
           data['vehicles']=vehicles;data['count']=len(vehicles);data['fetchedAt']=datetime.now(timezone.utc).isoformat();data['enrichmentStats']=stats
           SNAPSHOT.write_text(json.dumps(data,indent=2),encoding='utf-8')
           PY
@@ -176,6 +152,6 @@ jobs:
           git config user.email 'actions@users.noreply.github.com'
           git add data/inventory.json
           git diff --cached --quiet && exit 0
-          git commit -m 'Enrich Willow Grove inventory from secondary dealer listings'
+          git commit -m 'Populate inventory exterior interior colors and mileage'
           git pull --rebase origin main
           git push
