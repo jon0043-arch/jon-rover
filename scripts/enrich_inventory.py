@@ -20,6 +20,20 @@ INVALID_META = {
     'interior', 'exterior', 'unknown', 'n/a', 'na', 'null', 'none', 'undefined'
 }
 
+# Edmunds exposes both VIN and dealer stock number in its public search-result text.
+# We only accept a stock number when it is paired with the exact 17-character VIN.
+EDMUNDS_STOCK_PAGES = [
+    'https://www.edmunds.com/new-land-rover-range-rover-for-sale-bridgeton-nj/',
+    'https://www.edmunds.com/new-land-rover-range-rover-sport-for-sale-bridgeton-nj/',
+    'https://www.edmunds.com/new-land-rover-range-rover-evoque-for-sale-bridgeton-nj/',
+    'https://www.edmunds.com/new-land-rover-range-rover-velar-for-sale-bridgeton-nj/',
+    'https://www.edmunds.com/new-land-rover-defender-for-sale-bridgeton-nj/',
+    'https://www.edmunds.com/new-land-rover-discovery-for-sale-bridgeton-nj/',
+    'https://www.edmunds.com/new-land-rover-discovery-sport-for-sale-bridgeton-nj/',
+    'https://www.edmunds.com/used-land-rover-for-sale-bridgeton-nj/',
+    'https://www.edmunds.com/used-jaguar-for-sale-bridgeton-nj/',
+]
+
 
 def clean_label(value):
     if value is None:
@@ -47,7 +61,6 @@ def valid_stock(value):
     v = valid_meta(value)
     if not v or len(v) > 25 or not re.search(r'[A-Za-z]', v):
         return None
-    # Stop a label parser from swallowing a following VIN or sentence.
     v = re.split(r'\s+(?:VIN|Vehicle|Exterior|Interior)\b', v, maxsplit=1, flags=re.I)[0].strip()
     return v if re.search(r'[A-Za-z]', v) and re.search(r'\d', v) else None
 
@@ -109,8 +122,6 @@ def all_matches(text, patterns, validator=valid_meta):
 def best_color(values):
     if not values:
         return None
-    # Dealer Inspire repeats template placeholders before the real payload. Prefer
-    # concise values and exact JLR paint/trim codes when present.
     def score(v):
         s = 0
         if re.search(r'\b[A-Z0-9]{3,6}\b$', v): s += 5
@@ -123,14 +134,12 @@ def best_color(values):
 
 def parse_page_data(html, text):
     hay = f"{text}\n{html}"
-
     stock_values = all_matches(hay, [
         r'"(?:stockNumber|stock_number|stockNo|stock_no|stock)"\s*:\s*"([^"\\]{2,40})"',
         r'(?:data-stock-number|data-stock)\s*=\s*["\']([^"\']+)["\']',
         r'\bStock(?: Number| #| No\.?|:)\s*[:#]?\s*([A-Z0-9-]{3,30})'
     ], validator=valid_stock)
     stock = stock_values[0] if stock_values else None
-
     exterior_values = all_matches(hay, [
         r'"(?:exteriorColor|exterior_color|exteriorColour|exterior_color_name|extColor|ext_color)"\s*:\s*"([^"\\]{2,120})"',
         r'(?:data-exterior-color|data-ext-color)\s*=\s*["\']([^"\']+)["\']',
@@ -138,7 +147,6 @@ def parse_page_data(html, text):
         r'\bExterior(?: Color| Colour)?\s+([^\n<]{2,100})'
     ])
     exterior = best_color(exterior_values)
-
     interior_values = all_matches(hay, [
         r'"(?:interiorColor|interior_color|interiorColour|interior_color_name|intColor|int_color)"\s*:\s*"([^"\\]{2,120})"',
         r'(?:data-interior-color|data-int-color)\s*=\s*["\']([^"\']+)["\']',
@@ -146,9 +154,6 @@ def parse_page_data(html, text):
         r'\bInterior(?: Color| Colour)?\s+([^\n<]{2,100})'
     ])
     interior = best_color(interior_values)
-
-    # Mileage is deliberately strict. Broad numeric patterns previously captured
-    # unrelated UI numbers. LLM inventory mileage is overlaid separately below.
     mileage = None
     mileage_values = all_matches(hay, [
         r'"(?:odometer|vehicleMileage|vehicle_mileage)"\s*:\s*"?([\d,]{1,8})"?',
@@ -160,7 +165,6 @@ def parse_page_data(html, text):
             mileage = int(re.sub(r'\D', '', mileage_values[0]))
         except ValueError:
             pass
-
     return stock, exterior, interior, mileage
 
 
@@ -169,7 +173,6 @@ async def enrich_one(context, sem, v, idx, total):
     out.update(identity_from_url(v.get('url'), v.get('title') or ''))
     url = v.get('url') or ''
     if not url.startswith('https://www.landroverwillowgrove.com/inventory/'):
-        # Preserve previously good data, but remove known placeholders.
         out['exterior'] = valid_meta(out.get('exterior'))
         out['interior'] = valid_meta(out.get('interior'))
         out['stock'] = valid_stock(out.get('stock'))
@@ -209,7 +212,6 @@ async def overlay_llm_mileage(context, vehicles):
     seen = set()
     page = await context.new_page()
     try:
-        # The public machine-readable source paginates at up to 100 rows/page.
         for pageno in range(1, 5):
             url = f'https://www.landroverwillowgrove.com/llm/inventory/?limit=100&page={pageno}'
             try:
@@ -218,7 +220,6 @@ async def overlay_llm_mileage(context, vehicles):
             except Exception as e:
                 print('LLM_MILEAGE_FAIL', pageno, type(e).__name__)
                 continue
-            # Each record is short and includes title/condition/miles/price/VIN.
             pattern = re.compile(r'(?:New|Used|Certified Used)\s*\n\s*([\d,]+)\s+miles?\b[\s\S]{0,220}?VIN:\s*([A-HJ-NPR-Z0-9]{17})', re.I)
             found = 0
             for m in pattern.finditer(text):
@@ -234,6 +235,52 @@ async def overlay_llm_mileage(context, vehicles):
     return vehicles
 
 
+async def overlay_secondary_stock(context, vehicles):
+    by_vin = {str(v.get('vin','')).upper(): v for v in vehicles if v.get('vin')}
+    matched = set()
+    page = await context.new_page()
+    try:
+        for base_url in EDMUNDS_STOCK_PAGES:
+            empty_pages = 0
+            for pageno in range(1, 7):
+                url = base_url if pageno == 1 else f'{base_url}?pagenumber={pageno}'
+                try:
+                    await page.goto(url, wait_until='domcontentloaded', timeout=35000)
+                    await page.wait_for_timeout(750)
+                    text = await page.locator('body').inner_text(timeout=8000)
+                except Exception as e:
+                    print('STOCK_SOURCE_FAIL', url, type(e).__name__)
+                    empty_pages += 1
+                    if empty_pages >= 2: break
+                    continue
+
+                # Edmunds result cards present VIN followed by Stock. Pair them only
+                # inside a tight text window so a stock number cannot jump vehicles.
+                found = 0
+                for vin_match in re.finditer(r'VIN:\s*([A-HJ-NPR-Z0-9]{17})', text, re.I):
+                    vin = vin_match.group(1).upper()
+                    if vin not in by_vin:
+                        continue
+                    window = text[vin_match.end():vin_match.end()+140]
+                    stock_match = re.search(r'Stock:\s*([A-Za-z0-9-]{2,25})', window, re.I)
+                    if not stock_match:
+                        continue
+                    stock = valid_stock(stock_match.group(1))
+                    if stock:
+                        by_vin[vin]['stock'] = stock
+                        matched.add(vin)
+                        found += 1
+                print('STOCK_SOURCE', url, 'matched', found, 'total', len(matched))
+                if found == 0:
+                    empty_pages += 1
+                else:
+                    empty_pages = 0
+                if empty_pages >= 2: break
+    finally:
+        await page.close()
+    return vehicles
+
+
 async def main_async():
     payload = json.loads(DATA.read_text(encoding='utf-8'))
     vehicles = payload.get('vehicles') or []
@@ -244,6 +291,7 @@ async def main_async():
         tasks = [enrich_one(context, sem, v, i+1, len(vehicles)) for i,v in enumerate(vehicles)]
         vehicles = await asyncio.gather(*tasks)
         vehicles = await overlay_llm_mileage(context, vehicles)
+        vehicles = await overlay_secondary_stock(context, vehicles)
         await context.close()
         await browser.close()
 
