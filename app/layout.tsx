@@ -3,6 +3,7 @@ import "./hero-position.css";
 import "./about-section.css";
 import "./reviews-section.css";
 import "./inventory-section.css";
+import "./hero-search-clean.css";
 
 export const metadata = {
   title: "Jon Rover | Jaguar Land Rover Willow Grove",
