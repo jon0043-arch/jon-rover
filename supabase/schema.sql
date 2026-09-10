@@ -1,5 +1,29 @@
 create extension if not exists pgcrypto;
 
+create table if not exists public.inventory_vehicles (
+  vin text primary key,
+  title text not null,
+  condition text not null,
+  mileage integer,
+  price integer,
+  listing_url text not null,
+  image_url text,
+  stock text,
+  exterior text,
+  interior text,
+  interior_family text,
+  features text[] not null default '{}',
+  active boolean not null default true,
+  first_seen_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists inventory_vehicles_active_idx on public.inventory_vehicles(active);
+create index if not exists inventory_vehicles_condition_idx on public.inventory_vehicles(condition);
+create index if not exists inventory_vehicles_price_idx on public.inventory_vehicles(price);
+create index if not exists inventory_vehicles_title_idx on public.inventory_vehicles using gin (to_tsvector('simple', title));
+alter table public.inventory_vehicles enable row level security;
+
 create table if not exists public.jon_rover_leads (
   id uuid primary key default gen_random_uuid(), session_id text unique not null,
   created_at timestamptz not null default now(), last_seen_at timestamptz not null default now(),
@@ -53,4 +77,4 @@ alter table public.crm_vehicle_interest enable row level security;
 alter table public.crm_tasks enable row level security;
 alter table public.crm_appointments enable row level security;
 alter table public.crm_inventory_matches enable row level security;
--- Browser access stays closed. CRM endpoints use SUPABASE_SERVICE_ROLE_KEY.
+-- Browser access stays closed. Server routes use SUPABASE_SERVICE_ROLE_KEY.
