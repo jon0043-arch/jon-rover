@@ -18,98 +18,167 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install parser dependency
-        run: pip install requests
-      - name: Fetch every dealer inventory page
+      - name: Install browser tooling
+        run: |
+          pip install playwright beautifulsoup4
+          python -m playwright install --with-deps chromium
+      - name: Fetch Dealer Inspire inventory API
         run: |
           python - <<'PY'
-          import json,re,time
+          import asyncio, json, re
           from pathlib import Path
-          import requests
+          from urllib.parse import urljoin
+          from bs4 import BeautifulSoup
+          from playwright.async_api import async_playwright
 
-          DEALER='https://www.landroverwillowgrove.com'
-          INDEX=f'{DEALER}/llm/inventory/'
-          READER='https://r.jina.ai/'
-          UA='Mozilla/5.0'
+          ROOT='https://www.landroverwillowgrove.com'
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36'
 
-          def fetch(url):
-              r=requests.get(READER+url,headers={'User-Agent':UA},timeout=90)
-              r.raise_for_status()
-              return r.text
+          def money(s):
+              if not s: return None
+              m=re.search(r'\$\s*([\d,]+)',s)
+              return int(m.group(1).replace(',','')) if m else None
 
-          def clean_title(value):
-              return re.sub(r'\s+',' ',value).strip(' -|')
+          def number(s):
+              if not s: return None
+              m=re.search(r'([\d,]+)',s)
+              return int(m.group(1).replace(',','')) if m else None
 
-          def parse(text):
-              lines=[re.sub(r'^#+\s*','',x).strip() for x in text.splitlines()]
-              out=[]
-              for i,line in enumerate(lines):
-                  vm=re.search(r'VIN:\s*([A-HJ-NPR-Z0-9]{17})',line,re.I)
-                  if not vm:
-                      continue
-                  block=[x for x in lines[max(0,i-22):i+8] if x]
-                  condition=next((x for x in reversed(block[:22]) if x in ('New','Used','Certified Used')),None)
-                  price=next((x for x in reversed(block[:22]) if re.fullmatch(r'\$[\d,]+',x)),None)
-                  miles=next((x for x in reversed(block[:22]) if re.fullmatch(r'[\d,]+\s+miles?',x,re.I)),None)
-                  title=next((clean_title(x) for x in reversed(block[:22]) if re.match(r'^(19|20)\d{2}\s+',clean_title(x))),None)
-                  if not all((condition,price,miles,title)):
-                      continue
-                  listing=None
-                  for x in block:
-                      m=re.search(r'https://www\.landroverwillowgrove\.com/[^\s)]+',x)
-                      if m and '/llm/inventory/' not in m.group(0):
-                          listing=m.group(0).rstrip('.,')
-                          break
-                  out.append({
-                      'vin':vm.group(1).upper(),
-                      'title':title,
-                      'condition':condition,
-                      'mileage':int(re.sub(r'\D','',miles)),
-                      'price':int(re.sub(r'\D','',price)),
-                      'url':listing or INDEX,
-                      'image':None,
-                      'stock':None,
-                      'exterior':None,
-                      'interior':None,
-                      'interiorFamily':None,
-                      'features':[]
-                  })
+          def attr(el,*names):
+              for n in names:
+                  v=el.get(n)
+                  if v not in (None,''): return v
+              return None
+
+          def parse_cards(html, condition):
+              soup=BeautifulSoup(html or '', 'html.parser')
+              out=[]; seen=set()
+              candidates=soup.select('[data-vin], .vehicle, .vehicle-card, .inventory-item, .vehicle-wrap, article')
+              for el in candidates:
+                  blob=el.get_text(' ',strip=True)
+                  vin=attr(el,'data-vin','data-vehicle-vin')
+                  if not vin:
+                      m=re.search(r'\bVIN\s*:?\s*([A-HJ-NPR-Z0-9]{17})\b',blob,re.I)
+                      vin=m.group(1) if m else None
+                  if not vin or not re.fullmatch(r'[A-HJ-NPR-Z0-9]{17}',vin,re.I): continue
+                  vin=vin.upper()
+                  if vin in seen: continue
+                  seen.add(vin)
+                  year=attr(el,'data-year')
+                  if not year:
+                      ym=re.search(r'\b(20\d{2}|19\d{2})\b',blob); year=ym.group(1) if ym else None
+                  make=attr(el,'data-make'); model=attr(el,'data-model'); trim=attr(el,'data-trim')
+                  title=' '.join(x for x in [year,make,model,trim] if x)
+                  if not title:
+                      h=el.select_one('h1,h2,h3,h4,.title,.vehicle-title')
+                      title=h.get_text(' ',strip=True) if h else vin
+                  price=money(attr(el,'data-price')) or money(blob)
+                  mileage=number(attr(el,'data-mileage','data-miles'))
+                  if mileage is None:
+                      mm=re.search(r'([\d,]+)\s*(?:miles|mi)\b',blob,re.I)
+                      mileage=int(mm.group(1).replace(',','')) if mm else (0 if condition=='New' else None)
+                  exterior=attr(el,'data-ext-color','data-exterior-color','data-exterior')
+                  interior=attr(el,'data-int-color','data-interior-color','data-interior')
+                  stock=attr(el,'data-stock','data-stock-number')
+                  a=el.select_one('a[href]'); listing=urljoin(ROOT,a.get('href')) if a else None
+                  img=el.select_one('img'); image=None
+                  if img:
+                      image=attr(img,'src','data-src','data-lazy-src')
+                      if image: image=urljoin(ROOT,image)
+                  out.append({'vin':vin,'title':title.strip(),'condition':condition,'mileage':mileage,'price':price,'url':listing or ROOT+'/','image':image,'stock':stock,'exterior':exterior,'interior':interior,'interiorFamily':None,'features':[]})
               return out
 
-          vehicles={}
-          expected=None
-          page=1
-          stagnant=0
+          async def localization(page):
+              loc=await page.evaluate("""() => {
+                const names=Object.keys(window).filter(k => /inventory|localization/i.test(k));
+                const vals={};
+                for (const k of names) { try { const v=window[k]; if (v && typeof v==='object') vals[k]=v; } catch(e) {} }
+                return vals;
+              }""")
+              print('candidate globals:', list(loc.keys()))
+              for name,val in loc.items():
+                  if isinstance(val,dict) and ('ajax_nonce' in val or 'nonce' in val or '_nonce' in val): return name,val
+              html=await page.content()
+              m=re.search(r'(?:inventory_localization|inventoryLocalization)\s*=\s*(\{.*?\});',html,re.S)
+              if m:
+                  try: return 'inline',json.loads(m.group(1))
+                  except Exception: pass
+              return None,None
 
-          while page <= 10:
-              url=INDEX if page==1 else f'{INDEX}?page={page}'
-              text=fetch(url)
-              if expected is None:
-                  tm=re.search(r'(\d[\d,]*)\s+vehicles?\s+found',text,re.I)
-                  if tm:
-                      expected=int(tm.group(1).replace(',',''))
-              parsed=parse(text)
-              before=len(vehicles)
-              for v in parsed:
-                  vehicles[v['vin']]=v
-              added=len(vehicles)-before
-              print(f'PAGE {page}: parsed={len(parsed)} added={added} total={len(vehicles)} expected={expected}')
-              if expected and len(vehicles)>=expected:
-                  break
-              stagnant = stagnant + 1 if added == 0 else 0
-              if stagnant >= 2:
-                  break
-              page += 1
-              time.sleep(1)
+          async def fetch_section(browser,path,condition):
+              ctx=await browser.new_context(user_agent=UA,viewport={'width':1440,'height':1200})
+              page=await ctx.new_page(); reqs=[]
+              page.on('request', lambda r: reqs.append((r.method,r.url,r.post_data)) if r.method=='POST' else None)
+              await page.goto(ROOT+path,wait_until='domcontentloaded',timeout=60000)
+              await page.wait_for_timeout(7000)
+              name,loc=await localization(page)
+              print(condition,'page url',page.url,'localization',name,'keys',list(loc.keys()) if isinstance(loc,dict) else None)
+              ajax=[x for x in reqs if 'ajax' in x[1].lower() or '/en' in x[1]]
+              print(condition,'observed POST endpoints:',[(m,u) for m,u,_ in ajax[:10]])
+              allv={}
+              for v in parse_cards(await page.content(),condition): allv[v['vin']]=v
+              print(condition,'DOM initial',len(allv))
+              nonce=None; post_id=None
+              if isinstance(loc,dict):
+                  nonce=loc.get('ajax_nonce') or loc.get('nonce') or loc.get('_nonce')
+                  pg=loc.get('page')
+                  if isinstance(pg,dict): post_id=pg.get('ID') or pg.get('id')
+                  post_id=post_id or loc.get('post_id') or loc.get('_post_id')
+              endpoints=[]
+              for _,u,pd in ajax:
+                  if u not in endpoints: endpoints.append(u)
+                  if pd and not nonce:
+                      nm=re.search(r'(?:_nonce|nonce)=([^&]+)',pd); nonce=nm.group(1) if nm else nonce
+                  if pd and not post_id:
+                      pm=re.search(r'(?:_post_id|post_id)=([^&]+)',pd); post_id=pm.group(1) if pm else post_id
+              endpoints += [ROOT+'/en',ROOT+'/wp-admin/admin-ajax.php']; endpoints=list(dict.fromkeys(endpoints))
+              print(condition,'nonce?',bool(nonce),'post_id',post_id,'endpoints',endpoints)
+              if not nonce or not post_id:
+                  await ctx.close(); return allv
+              working=None; first=None
+              for endpoint in endpoints:
+                  form={'action':'im_ajax_call','perform':'get_results','page':'1','_nonce':str(nonce),'_post_id':str(post_id),'_referer':path}
+                  try:
+                      resp=await ctx.request.post(endpoint,form=form,headers={'Referer':ROOT+path,'X-Requested-With':'XMLHttpRequest'})
+                      txt=await resp.text(); print(condition,'POST',endpoint,'status',resp.status,'type',resp.headers.get('content-type'),'prefix',txt[:120].replace('\n',' '))
+                      try: data=json.loads(txt)
+                      except Exception: continue
+                      if isinstance(data,dict) and data.get('results') is not None: working=endpoint; first=data; break
+                  except Exception as e: print(condition,'POST failed',endpoint,type(e).__name__,str(e)[:120])
+              if not working:
+                  await ctx.close(); return allv
+              pages=int(first.get('page_count') or first.get('pages') or 1)
+              print(condition,'AJAX pages',pages,'keys',list(first.keys()))
+              for n in range(1,pages+1):
+                  data=first
+                  if n>1:
+                      form={'action':'im_ajax_call','perform':'get_results','page':str(n),'_nonce':str(nonce),'_post_id':str(post_id),'_referer':path}
+                      resp=await ctx.request.post(working,form=form,headers={'Referer':ROOT+path,'X-Requested-With':'XMLHttpRequest'})
+                      try: data=await resp.json()
+                      except Exception: print(condition,'page',n,'non-json status',resp.status); continue
+                  vs=parse_cards(data.get('results',''),condition)
+                  for v in vs: allv[v['vin']]=v
+                  print(condition,'AJAX page',n,'parsed',len(vs),'running',len(allv))
+              await ctx.close(); return allv
 
-          data={'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'vehicles':list(vehicles.values())}
-          print('FINAL',json.dumps({'expected':expected,'count':len(vehicles),'pages':page}))
-          if not expected:
-              raise SystemExit('Could not read dealer inventory total')
-          if len(vehicles)!=expected:
-              raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
-          Path('data').mkdir(exist_ok=True)
-          Path('data/inventory.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
+          async def main():
+              async with async_playwright() as p:
+                  browser=await p.chromium.launch(headless=True); vehicles={}
+                  for path,cond in [('/new-vehicles/','New'),('/pre-owned-vehicles/','Used')]: vehicles.update(await fetch_section(browser,path,cond))
+                  expected=None
+                  pg=await browser.new_page(user_agent=UA)
+                  try:
+                      await pg.goto(ROOT+'/llm/inventory/',wait_until='domcontentloaded',timeout=60000)
+                      txt=await pg.locator('body').inner_text(); tm=re.search(r'(\d[\d,]*)\s+vehicles?\s+found',txt,re.I)
+                      if tm: expected=int(tm.group(1).replace(',',''))
+                  except Exception as e: print('count check failed',e)
+                  await browser.close(); print('FINAL',json.dumps({'expected':expected,'count':len(vehicles)}))
+                  if expected and len(vehicles)!=expected: raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
+                  if len(vehicles)<200: raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
+                  Path('data').mkdir(exist_ok=True)
+                  Path('data/inventory.json').write_text(json.dumps({'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'vehicles':list(vehicles.values())},indent=2),encoding='utf-8')
+
+          asyncio.run(main())
           PY
       - name: Commit inventory snapshot
         run: |
