@@ -65,12 +65,13 @@ function isLeaseRequest(query: string) {
 }
 
 function isLeaseEligible(v: Vehicle) {
+  const condition = String(v.condition || "").trim().toLowerCase();
+  if (condition) return condition.includes("new");
+
+  // Fallback only when the inventory feed does not provide condition.
   const stock = String(v.stock || "").trim().toUpperCase();
-  const condition = String(v.condition || "").toLowerCase();
-  if (condition && !condition.includes("new")) return false;
   if (!stock) return false;
-  if (!/\d$/.test(stock)) return false;
-  return /^[RJ]/.test(stock);
+  return /^[RJ].*\d$/.test(stock);
 }
 
 function fallbackPicks(v: Vehicle[], budget: number | null = null) {
@@ -124,7 +125,7 @@ function interiorMatches(v: Vehicle, family: string) {
 function normalizeQuery(q: string) {
   let out = q;
   if (/\bthird[ -]?row\b|\b3rd[ -]?row\b/i.test(out) && !/\b7[ -]?seat|seven[ -]?seat/i.test(out)) out += ". HARD REQUIREMENT: 7 seats / seven-passenger seating.";
-  if (isLeaseRequest(out)) out += ". HARD REQUIREMENT: lease requests may ONLY use new lease-eligible inventory. Land Rover new stock numbers start with R and end in a number; Jaguar new stock numbers start with J and end in a number. Any stock number ending in a letter is not lease eligible, and stock numbers starting with P are not lease eligible.";
+  if (isLeaseRequest(out)) out += ". HARD REQUIREMENT: lease requests may ONLY use NEW inventory. Any vehicle marked new is lease eligible. Never show used or pre-owned inventory for a lease request.";
   const color = requestedColor(out);
   if (color) out += ` EXTERIOR COLOR PREFERENCE: ${color}. Keep all picks in this color whenever enough qualifying inventory exists; only relax if needed.`;
   const interior = requestedInterior(out);
@@ -188,7 +189,7 @@ export async function POST(request: NextRequest) {
         model: process.env.OPENAI_MODEL || "gpt-5.6-luna",
         store: false,
         reasoning: { effort: "low" },
-        instructions: `You power Jon Rover, a personal Jaguar Land Rover shopping assistant. The backend has ALREADY applied the hard constraints. Never broaden an exact model request. Select up to ${maxPicks} vehicles ONLY from the supplied list. Never substitute a different model, body style, seating layout, new/used condition, or wildly different price just for variety. LEASE RULE: if the customer asks to lease, every supplied candidate has already been filtered to new lease-eligible inventory; never suggest used or pre-owned vehicles for a lease. Land Rover new/lease stock starts with R and ends in a number; Jaguar new/lease stock starts with J and ends in a number. Stock starting with P or ending in a letter is not lease eligible. If fewer than three genuinely relevant candidates are supplied, return fewer than three. Exterior and interior color should remain exact whenever matching candidates exist. Never invent equipment, seating, colors, price, mileage, packages or availability. Labels should be BEST MATCH, SMART ALTERNATIVE, then WILDCARD only when a third relevant pick truly exists. Explain each in first person as Jon in 1-2 concise sentences. IMPORTANT BUDGET RULE: the only customer budget is the amount the customer actually stated. The backend may include vehicles up to $10,000 above that amount as an INTERNAL search buffer. Never tell the customer their max/ceiling/budget is that higher amount. Never mention the internal buffer. If recommending a vehicle above the stated budget, say plainly that it is above their stated budget and by how much, or call it a stretch above their stated budget.`,
+        instructions: `You power Jon Rover, a personal Jaguar Land Rover shopping assistant. The backend has ALREADY applied the hard constraints. Never broaden an exact model request. Select up to ${maxPicks} vehicles ONLY from the supplied list. Never substitute a different model, body style, seating layout, new/used condition, or wildly different price just for variety. LEASE RULE: if the customer asks to lease, every supplied candidate is new inventory. Any NEW vehicle may be leased. Never suggest used or pre-owned vehicles for a lease. If fewer than three genuinely relevant candidates are supplied, return fewer than three. Exterior and interior color should remain exact whenever matching candidates exist. Never invent equipment, seating, colors, price, mileage, packages or availability. Labels should be BEST MATCH, SMART ALTERNATIVE, then WILDCARD only when a third relevant pick truly exists. Explain each in first person as Jon in 1-2 concise sentences. IMPORTANT BUDGET RULE: the only customer budget is the amount the customer actually stated. The backend may include vehicles up to $10,000 above that amount as an INTERNAL search buffer. Never tell the customer their max/ceiling/budget is that higher amount. Never mention the internal buffer. If recommending a vehicle above the stated budget, say plainly that it is above their stated budget and by how much, or call it a stretch above their stated budget.`,
         input: `Customer request:\n${query}\n\nRanked Willow Grove candidates:\n${JSON.stringify(candidates)}`,
         text: {
           format: {
