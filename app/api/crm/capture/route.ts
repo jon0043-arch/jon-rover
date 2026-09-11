@@ -28,6 +28,7 @@ function cleanName(value?:string|null){
 }
 
 function extractExplicitName(text:string){
+  const normalized=text.replace(/[’‘]/g,"'");
   const patterns=[
     /\bmy name is\s+([A-Za-z][A-Za-z' -]{0,50}?)(?=\s*(?:[,!.?]|$|\band\b|\bi\b))/i,
     /\bmy name'?s\s+([A-Za-z][A-Za-z' -]{0,50}?)(?=\s*(?:[,!.?]|$|\band\b|\bi\b))/i,
@@ -38,7 +39,7 @@ function extractExplicitName(text:string){
     /^([A-Za-z][A-Za-z' -]{1,40})\s+here[.!]?$/i,
   ];
   for(const pattern of patterns){
-    const match=text.match(pattern)?.[1];
+    const match=normalized.match(pattern)?.[1];
     const name=cleanName(match);
     if(name)return name;
   }
@@ -46,7 +47,8 @@ function extractExplicitName(text:string){
 }
 
 function assistantAskedForName(text:string){
-  return /(?:what(?:'s| is) your (?:full )?name|what should i call you|may i have your (?:full )?name|can i (?:get|have) your (?:full )?name|first(?: and last)? name|last name|who am i speaking with|who(?:'s| is) this|your name)/i.test(text);
+  const normalized=text.replace(/[’‘]/g,"'");
+  return /(?:what(?:'s| is) your (?:full |first )?name|what should i call you|may i have your (?:full |first )?name|can i (?:get|have) your (?:full |first )?name|first(?: and last)? name|last name|who am i speaking with|who(?:'s| is) this|your name)/i.test(normalized);
 }
 
 function contactFrom(messages:Message[]){
