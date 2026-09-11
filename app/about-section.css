@@ -1,15 +1,3 @@
-.heroJonPointing {
-  position: absolute;
-  z-index: 3;
-  left: 51%;
-  bottom: -32px;
-  width: clamp(210px, 19vw, 340px);
-  height: auto;
-  display: block;
-  pointer-events: none;
-  user-select: none;
-}
-
 .personalAbout {
   background: #ece6dc;
   border-top: 1px solid rgba(16, 21, 19, 0.12);
@@ -28,8 +16,8 @@
 .personalPortraitWrap {
   position: relative;
   width: 100%;
-  max-width: 500px;
-  aspect-ratio: 4 / 5;
+  max-width: 520px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   background: #d8d1c6;
 }
@@ -38,9 +26,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
   display: block;
-  filter: saturate(0.94) contrast(0.99);
+  filter: saturate(0.88) contrast(0.98);
 }
 
 .personalAboutCopy {
@@ -97,23 +84,5 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 18px;
-  }
-}
-
-@media (max-width: 620px) {
-  .heroJonPointing {
-    left: auto;
-    right: 4px;
-    bottom: -8px;
-    width: 42vw;
-    max-width: 190px;
-    z-index: 3;
-  }
-
-  .personalPortraitWrap {
-    width: 78%;
-    max-width: 340px;
-    margin: 0 auto;
-    aspect-ratio: 4 / 5;
   }
 }
