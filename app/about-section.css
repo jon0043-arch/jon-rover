@@ -5,7 +5,7 @@
   bottom: -18px;
   width: clamp(190px, 17vw, 300px);
   height: auto;
-  display: block;
+  display: none;
   pointer-events: none;
   user-select: none;
 }
@@ -102,6 +102,7 @@
 
 @media (max-width: 620px) {
   .heroJonPointing {
+    display: block;
     left: auto;
     right: 10px;
     bottom: -4px;
