@@ -1,9 +1,9 @@
 .heroJonDesktop {
   position: absolute;
   z-index: 4;
-  right: 7%;
+  right: 5%;
   bottom: -10px;
-  width: clamp(230px, 20vw, 360px);
+  width: clamp(320px, 27vw, 500px);
   height: auto;
   display: block;
   pointer-events: none;
