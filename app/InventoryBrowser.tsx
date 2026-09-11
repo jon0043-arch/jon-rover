@@ -15,11 +15,11 @@ function askRover(v:Vehicle){window.dispatchEvent(new CustomEvent("open-jon-rove
 function isLeaseSearch(q:string){return /\blease\b|\bleasing\b|\bleased\b/i.test(q);}
 function parseBudget(q:string){const m=q.match(/(?:under|below|less than|max(?:imum)?|budget(?: of| is)?|up to|no more than|around|about)\s*\$?\s*([\d,.]+)\s*(k)?/i)||q.match(/\$\s*([\d,.]+)\s*(k)?/i);if(!m)return null;let n=Number(m[1].replace(/,/g,""));if(m[2])n*=1000;return Number.isFinite(n)?n:null;}
 function requestedColor(q:string){return ["black","white","green","blue","red","silver","gray","grey","bronze","gold"].find(c=>new RegExp(`\\b${c}\\b`,"i").test(q))||null;}
+function stripMileageWhy(text:string){return text.split(/(?<=[.!?])\s+/).filter(sentence=>!/(?:\bmileage\b|\bmiles?\b|\bodometer\b)/i.test(sentence)).join(" ").trim();}
 function specificWhy(v:Vehicle,index:number,q:string){
  const details:string[]=[];const budget=parseBudget(q);const color=requestedColor(q);const qLower=q.toLowerCase();
  if(budget!=null&&v.price!=null){if(v.price<=budget)details.push(`At ${money(v.price)}, it stays inside your ${money(budget)} target.`);else details.push(`At ${money(v.price)}, it is a stretch above your ${money(budget)} target, but it is close enough to be worth comparing.`);}
  if(color&&v.exterior&&v.exterior.toLowerCase().includes(color==="grey"?"gray":color))details.push(`It also matches the ${color} exterior you asked for.`);
- if(v.mileage!=null&&(details.length<2||/mile|mileage|low[- ]?mile/.test(qLower)))details.push(`It has ${v.mileage.toLocaleString()} miles, which helps separate it from the other matches.`);
  if(v.interior&&/interior|seat|caraway|ebony|cloud|garnet|tan|black|red/.test(qLower))details.push(`The ${v.interior} interior is another direct match to your request.`);
  if(!details.length&&v.exterior)details.push(`The ${v.exterior} exterior gives this one a different look from the other choices.`);
  if(!details.length&&v.price!=null)details.push(`Its ${money(v.price)} asking price is one of the main reasons it made the short list.`);
@@ -29,7 +29,7 @@ function specificWhy(v:Vehicle,index:number,q:string){
 }
 function normalizePickReasons(rawPicks:Vehicle[]|undefined,candidates:Vehicle[],q:string){
  const source=(Array.isArray(rawPicks)&&rawPicks.length?rawPicks:candidates.slice(0,3)).slice(0,3);const seen=new Set<string>();
- return source.map((v,index)=>{let why=String(v.why||"").trim();let key=why.toLowerCase().replace(/\s+/g," ");if(!why||/^pick \d+ based on/i.test(why)||seen.has(key)){why=specificWhy(v,index,q);key=why.toLowerCase().replace(/\s+/g," ");}if(seen.has(key))why=`${why} ${v.stock?`Stock ${v.stock}`:`VIN ending ${v.vin.slice(-6)}`} is the specific vehicle I would compare here.`;seen.add(why.toLowerCase().replace(/\s+/g," "));return{...v,pickLabel:v.pickLabel||PICK_LABELS[index],why};});
+ return source.map((v,index)=>{let why=stripMileageWhy(String(v.why||"").trim());let key=why.toLowerCase().replace(/\s+/g," ");if(!why||/^pick \d+ based on/i.test(why)||seen.has(key)){why=specificWhy(v,index,q);key=why.toLowerCase().replace(/\s+/g," ");}if(seen.has(key))why=`${why} ${v.stock?`Stock ${v.stock}`:`VIN ending ${v.vin.slice(-6)}`} is the specific vehicle I would compare here.`;seen.add(why.toLowerCase().replace(/\s+/g," "));return{...v,pickLabel:v.pickLabel||PICK_LABELS[index],why};});
 }
 function normalizeModelParam(model:string){const x=model.trim().toUpperCase();if(x==="RANGE ROVER VELAR")return"VELAR";if(x==="RANGE ROVER EVOQUE")return"EVOQUE";if(x==="LAND ROVER DEFENDER")return"DEFENDER";if(x==="LAND ROVER CERTIFIED PRE-OWNED"||x==="CERTIFIED PRE-OWNED")return"ALL";return MODEL_FILTERS.includes(x)?x:model.trim();}
 export default function InventoryBrowser({initialQuery="",requestSignal=0}:Props){
