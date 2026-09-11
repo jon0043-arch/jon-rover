@@ -1,3 +1,15 @@
+.heroJonDesktop {
+  position: absolute;
+  z-index: 4;
+  right: 7%;
+  bottom: -10px;
+  width: clamp(230px, 20vw, 360px);
+  height: auto;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
 .heroJonPointing {
   position: absolute;
   z-index: 4;
@@ -77,6 +89,10 @@
 }
 
 @media (max-width: 900px) {
+  .heroJonDesktop {
+    display: none;
+  }
+
   .personalAboutInner {
     min-height: auto;
     grid-template-columns: 1fr;
@@ -101,6 +117,10 @@
 }
 
 @media (max-width: 620px) {
+  .heroJonDesktop {
+    display: none;
+  }
+
   .heroJonPointing {
     display: block;
     left: auto;
