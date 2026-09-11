@@ -8,7 +8,32 @@
 .heroCopy {
   margin-left: 48px;
   margin-right: 0;
-  width: min(760px, calc(100% - 96px));
+  width: min(680px, calc(100% - 96px));
+}
+
+@media (min-width: 901px) {
+  .heroCopy {
+    padding-top: 9vh;
+  }
+
+  .heroCopy h1 {
+    max-width: 610px;
+    font-size: clamp(76px, 6.35vw, 118px);
+    line-height: .88;
+    letter-spacing: .055em;
+    margin-bottom: 22px;
+  }
+
+  .heroLead {
+    max-width: 545px;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .heroVehicleSearch {
+    width: min(570px, 100%);
+    margin-top: 24px!important;
+  }
 }
 
 @media (max-width: 900px) {
