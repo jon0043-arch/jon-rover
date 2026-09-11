@@ -1,24 +1,24 @@
-/* Mobile homepage — tuned to the approved reference */
+/* Mobile homepage — full-bleed composition */
 .mobileMenuIcon,.mobileScrollCue,.mobileBreak{display:none}
 @media (max-width:620px){
-  .hero{min-height:100svh;height:100svh;background:#eee9df;}
+  .hero{min-height:100svh;height:100svh;background:#eee9df;overflow:hidden}
   .nav.shell{width:calc(100% - 40px);margin:0 20px;padding-top:22px;gap:12px;align-items:start;grid-template-columns:1fr auto auto;}
   .brandLockup{max-width:50vw;gap:5px}.brandLockup .brand{font-size:14px;letter-spacing:.25em;white-space:nowrap}.brandLockup .eyebrow{font-size:7px;line-height:1.55;letter-spacing:.22em;max-width:175px}
   .navRoverButton{min-height:54px;padding:0 18px;font-size:8px;letter-spacing:.18em;white-space:nowrap}
   .mobileMenuIcon{display:flex;width:34px;height:54px;border:0;padding:11px 0;background:transparent;flex-direction:column;justify-content:center;gap:6px}.mobileMenuIcon span{display:block;width:27px;height:2px;background:#111714}
 
-  /* Mobile uses the same hero art at a much smaller scale than desktop. */
-  .heroImage{inset:0!important;transform:none!important;overflow:hidden}
-  .heroImage img{object-fit:cover!important;object-position:72% center!important;transform:scale(.78)!important;transform-origin:72% 58%!important}
+  /* Never scale the desktop image inside its box — that caused the visible rectangle. */
+  .heroImage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;transform:none!important;overflow:hidden!important}
+  .heroImage img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:74% center!important;transform:none!important}
   .heroShade{background:transparent!important}
 
-  .heroCopy{position:absolute!important;left:20px!important;top:34svh!important;width:calc(100% - 40px)!important;margin:0!important;padding:0!important;z-index:4;transform:none!important;opacity:1!important}
-  .heroKicker{margin:0 0 14px;font-size:7.5px;letter-spacing:.24em;color:#111714;text-shadow:none}
-  .heroCopy h1{max-width:64%;margin:0 0 16px;font-size:clamp(43px,11.8vw,52px);line-height:.88;letter-spacing:.03em;font-weight:300;color:#111714;text-shadow:none}
+  .heroCopy{position:absolute!important;left:20px!important;top:31svh!important;width:calc(100% - 40px)!important;margin:0!important;padding:0!important;z-index:4;transform:none!important;opacity:1!important}
+  .heroKicker{margin:0 0 14px;font-size:7.5px;letter-spacing:.24em;color:#111714;text-shadow:0 1px 12px rgba(245,240,231,.5)}
+  .heroCopy h1{max-width:58%;margin:0 0 16px;font-size:clamp(40px,10.8vw,48px);line-height:.88;letter-spacing:.03em;font-weight:300;color:#111714;text-shadow:0 1px 14px rgba(245,240,231,.35)}
   .mobileBreak{display:block}
-  .heroLead{max-width:61%;margin:0;font-size:7.9px;line-height:1.55;letter-spacing:.085em;color:#111714;text-shadow:none}
+  .heroLead{max-width:56%;margin:0;font-size:7.7px;line-height:1.55;letter-spacing:.085em;color:#111714;text-shadow:0 1px 10px rgba(245,240,231,.5)}
 
-  .heroVehicleSearch{position:relative!important;top:auto!important;left:auto!important;bottom:auto!important;width:100%!important;margin:22px 0 0!important;padding:7px 8px 7px 20px!important;border-radius:999px!important;background:rgba(247,244,237,.42)!important;border:1px solid rgba(255,255,255,.9)!important;backdrop-filter:blur(18px) saturate(108%)!important;-webkit-backdrop-filter:blur(18px) saturate(108%)!important;box-shadow:0 18px 48px rgba(0,0,0,.10)!important}
+  .heroVehicleSearch{position:relative!important;top:auto!important;left:auto!important;bottom:auto!important;width:100%!important;margin:20px 0 0!important;padding:7px 8px 7px 20px!important;border-radius:999px!important;background:rgba(247,244,237,.38)!important;border:1px solid rgba(255,255,255,.9)!important;backdrop-filter:blur(18px) saturate(108%)!important;-webkit-backdrop-filter:blur(18px) saturate(108%)!important;box-shadow:0 18px 48px rgba(0,0,0,.10)!important}
   .heroVehicleSearchBar{grid-template-columns:minmax(0,1fr) 54px!important;gap:8px!important}
   .heroVehicleSearchBar:before{content:'✦';align-self:center;font-size:17px;color:#fff;position:absolute;left:21px;text-shadow:0 1px 10px rgba(0,0,0,.2)}
   .heroVehicleSearchBar input{min-width:0;width:100%;padding:9px 0 9px 35px!important;font-size:14px!important;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.18);outline:none}.heroVehicleSearchBar input::placeholder{color:rgba(255,255,255,.94)!important}
@@ -26,4 +26,4 @@
 
   .mobileScrollCue{display:flex;position:absolute;left:20px;bottom:24px;z-index:5;align-items:center;gap:14px;font-size:8px;letter-spacing:.24em;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.35)}.mobileScrollCue span{display:block;width:1px;height:48px;background:rgba(255,255,255,.82)}
 }
-@media(max-width:390px){.brandLockup .eyebrow{font-size:6.4px;max-width:150px}.navRoverButton{padding:0 13px;font-size:7.2px}.mobileMenuIcon{width:30px}.mobileMenuIcon span{width:24px}.heroCopy{top:32svh!important}.heroCopy h1{font-size:42px;max-width:66%}.heroLead{max-width:64%}.heroVehicleSearch{margin-top:18px!important}.heroImage img{transform:scale(.76)!important}}
+@media(max-width:390px){.brandLockup .eyebrow{font-size:6.4px;max-width:150px}.navRoverButton{padding:0 13px;font-size:7.2px}.mobileMenuIcon{width:30px}.mobileMenuIcon span{width:24px}.heroCopy{top:30svh!important}.heroCopy h1{font-size:40px;max-width:60%}.heroLead{max-width:59%}.heroVehicleSearch{margin-top:17px!important}}
