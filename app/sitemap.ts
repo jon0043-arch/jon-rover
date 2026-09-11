@@ -5,10 +5,10 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ||
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const landingPages=["/range-rover","/range-rover-sport","/range-rover-velar","/range-rover-evoque","/defender","/discovery-sport","/land-rover-certified-pre-owned","/jaguar"];
+  const landingPages=["/range-rover","/range-rover-sport","/range-rover-velar","/range-rover-evoque","/defender","/discovery-sport","/land-rover-certified-pre-owned","/jaguar","/reviews","/range-rover-vs-range-rover-sport","/range-rover-velar-vs-evoque","/defender-110-vs-130"];
   return [
     {url:siteUrl,lastModified:now,changeFrequency:"daily",priority:1},
-    ...landingPages.map(path=>({url:`${siteUrl}${path}`,lastModified:now,changeFrequency:"daily" as const,priority:.9})),
+    ...landingPages.map(path=>({url:`${siteUrl}${path}`,lastModified:now,changeFrequency:"weekly" as const,priority:path==="/reviews"?.8:.9})),
     {url:`${siteUrl}/privacy`,lastModified:now,changeFrequency:"yearly",priority:.2},
     {url:`${siteUrl}/terms`,lastModified:now,changeFrequency:"yearly",priority:.2},
   ];
