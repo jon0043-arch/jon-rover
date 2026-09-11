@@ -9,8 +9,8 @@ import TextJon from "./TextJon";
 
 gsap.registerPlugin(ScrollTrigger);
 const JON_TEXT_NUMBER="+12156087408";
-const JON_CALL_NUMBER="tel:+12154435900;ext=2125";
-const JON_CALL_DISPLAY="215-443-5900 ext 2125";
+const JON_CALL_NUMBER="tel:+16092218478";
+const JON_CALL_DISPLAY="609-221-8478";
 const GENERAL_SMS=`sms:${JON_TEXT_NUMBER}?body=${encodeURIComponent("Hi Jon, I found you through Jon Rover and wanted some help finding a vehicle.")}`;
 const reviews=[{quote:"Very knowledgeable and excellent communicator!",source:"Customer review · December 2025"},{quote:"He was attentive and patient.",source:"Customer review · April 2025"},{quote:"Definitely the best experience we've ever had at a dealership.",source:"Customer review · June 2025"},{quote:"Friendly, knowledgeable and efficient service from Jon.",source:"Customer review · September 2023"},{quote:"Sales person went above and beyond.",source:"Customer review · May 2024"},{quote:"Fast responses to all correspondences.",source:"Customer review · March 2026"},{quote:"He went above and beyond to make sure my buying experience was smooth and professional.",source:"Customer review"},{quote:"He made the process of car shopping much easier for me.",source:"Customer review"}];
 const modelLinks=[
