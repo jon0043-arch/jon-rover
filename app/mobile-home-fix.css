@@ -8,17 +8,17 @@
   .mobileMenuIcon{display:flex;width:34px;height:54px;border:0;padding:11px 0;background:transparent;flex-direction:column;justify-content:center;gap:6px}.mobileMenuIcon span{display:block;width:27px;height:2px;background:#111714}
 
   /* Keep the photo clean: no page-wide wash or fade. */
-  .heroImage{inset:0}.heroImage img{object-position:68% center!important}
+  .heroImage{inset:0}.heroImage img{object-position:76% center!important}
   .heroShade{background:transparent!important}
 
-  /* Lock the copy into a deliberate mobile composition instead of letting it drift into the vehicle. */
+  /* Mobile composition: headline and search flow together so nothing overlaps. */
   .heroCopy{position:absolute!important;left:20px!important;top:34svh!important;width:calc(100% - 40px)!important;margin:0!important;padding:0!important;z-index:4;transform:none!important;opacity:1!important}
-  .heroKicker{margin:0 0 16px;font-size:7.5px;letter-spacing:.24em;color:rgba(255,255,255,.92);text-shadow:0 2px 14px rgba(0,0,0,.48)}
-  .heroCopy h1{max-width:72%;margin:0 0 18px;font-size:clamp(48px,13.2vw,58px);line-height:.88;letter-spacing:.035em;font-weight:300;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.38)}
+  .heroKicker{margin:0 0 14px;font-size:7.5px;letter-spacing:.24em;color:rgba(255,255,255,.94);text-shadow:0 2px 14px rgba(0,0,0,.55)}
+  .heroCopy h1{max-width:64%;margin:0 0 16px;font-size:clamp(43px,11.8vw,52px);line-height:.88;letter-spacing:.03em;font-weight:300;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.42)}
   .mobileBreak{display:block}
-  .heroLead{max-width:69%;margin:0;font-size:8.2px;line-height:1.58;letter-spacing:.09em;color:rgba(255,255,255,.94);text-shadow:0 2px 14px rgba(0,0,0,.55)}
+  .heroLead{max-width:61%;margin:0;font-size:7.9px;line-height:1.55;letter-spacing:.085em;color:rgba(255,255,255,.96);text-shadow:0 2px 14px rgba(0,0,0,.62)}
 
-  .heroVehicleSearch{position:absolute!important;top:auto!important;left:20px!important;bottom:16.5svh!important;width:calc(100vw - 40px)!important;margin:0!important;padding:7px 8px 7px 20px!important;border-radius:999px!important;background:rgba(40,42,40,.52)!important;border:1px solid rgba(255,255,255,.88)!important;backdrop-filter:blur(18px) saturate(108%)!important;-webkit-backdrop-filter:blur(18px) saturate(108%)!important;box-shadow:0 18px 48px rgba(0,0,0,.16)!important}
+  .heroVehicleSearch{position:relative!important;top:auto!important;left:auto!important;bottom:auto!important;width:100%!important;margin:22px 0 0!important;padding:7px 8px 7px 20px!important;border-radius:999px!important;background:rgba(40,42,40,.50)!important;border:1px solid rgba(255,255,255,.88)!important;backdrop-filter:blur(18px) saturate(108%)!important;-webkit-backdrop-filter:blur(18px) saturate(108%)!important;box-shadow:0 18px 48px rgba(0,0,0,.16)!important}
   .heroVehicleSearchBar{grid-template-columns:minmax(0,1fr) 54px!important;gap:8px!important}
   .heroVehicleSearchBar:before{content:'✦';align-self:center;font-size:17px;color:#fff;position:absolute;left:21px;text-shadow:0 1px 10px rgba(0,0,0,.2)}
   .heroVehicleSearchBar input{min-width:0;width:100%;padding:9px 0 9px 35px!important;font-size:14px!important;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.18);outline:none}.heroVehicleSearchBar input::placeholder{color:rgba(255,255,255,.94)!important}
@@ -26,4 +26,4 @@
 
   .mobileScrollCue{display:flex;position:absolute;left:20px;bottom:24px;z-index:5;align-items:center;gap:14px;font-size:8px;letter-spacing:.24em;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.35)}.mobileScrollCue span{display:block;width:1px;height:48px;background:rgba(255,255,255,.82)}
 }
-@media(max-width:390px){.brandLockup .eyebrow{font-size:6.4px;max-width:150px}.navRoverButton{padding:0 13px;font-size:7.2px}.mobileMenuIcon{width:30px}.mobileMenuIcon span{width:24px}.heroCopy{top:33svh!important}.heroCopy h1{font-size:47px}.heroLead{max-width:72%}.heroVehicleSearch{bottom:16svh!important}}
+@media(max-width:390px){.brandLockup .eyebrow{font-size:6.4px;max-width:150px}.navRoverButton{padding:0 13px;font-size:7.2px}.mobileMenuIcon{width:30px}.mobileMenuIcon span{width:24px}.heroCopy{top:32svh!important}.heroCopy h1{font-size:42px;max-width:66%}.heroLead{max-width:64%}.heroVehicleSearch{margin-top:18px!important}}
