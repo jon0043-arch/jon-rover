@@ -104,10 +104,10 @@
   .heroJonPointing {
     display: block;
     left: auto;
-    right: 10px;
-    bottom: -4px;
-    width: 36vw;
-    max-width: 155px;
+    right: 2px;
+    bottom: -8px;
+    width: 48vw;
+    max-width: 205px;
     z-index: 4;
   }
 
