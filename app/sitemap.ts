@@ -5,7 +5,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ||
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const landingPages=["/range-rover","/range-rover-sport","/defender","/land-rover-certified-pre-owned","/jaguar"];
+  const landingPages=["/range-rover","/range-rover-sport","/range-rover-velar","/range-rover-evoque","/defender","/discovery-sport","/land-rover-certified-pre-owned","/jaguar"];
   return [
     {url:siteUrl,lastModified:now,changeFrequency:"daily",priority:1},
     ...landingPages.map(path=>({url:`${siteUrl}${path}`,lastModified:now,changeFrequency:"daily" as const,priority:.9})),
