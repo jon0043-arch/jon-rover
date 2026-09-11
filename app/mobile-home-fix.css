@@ -28,6 +28,14 @@
   .heroVehicleSearchBar input{min-width:0;width:100%;max-width:100%;padding:9px 0 9px 35px!important;font-size:16px!important;line-height:1.2;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.18);outline:none;background:transparent!important}.heroVehicleSearchBar input::placeholder{color:rgba(255,255,255,.96)!important}
   .heroVehicleSearchBar button{width:54px!important;height:54px!important;min-width:54px;padding:0!important;border:1px solid rgba(255,255,255,.88)!important;border-radius:50%!important;background:rgba(255,255,255,.08)!important;color:#fff!important;appearance:none;-webkit-appearance:none;box-shadow:none!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 
+  .mobileModelNav{padding:28px 0 24px!important;}
+  .mobileModelNavInner{padding:0 20px!important;}
+  .mobileModelNav .eyebrow{margin:0 0 15px!important;font-size:8px!important;}
+  .mobileModelScroller{gap:10px!important;padding:0 0 4px!important;}
+  .mobileModelCard{flex:0 0 178px!important;width:178px!important;min-width:178px!important;height:86px!important;min-height:86px!important;padding:0 16px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;}
+  .mobileModelCard span{font-size:12px!important;line-height:1.15!important;letter-spacing:.055em!important;}
+  .mobileModelCard b{font-size:21px!important;font-weight:300!important;}
+
   .mobileScrollCue{display:none!important}
 }
-@media(max-width:390px){.brandLockup .eyebrow{font-size:6.4px;max-width:150px}.navRoverButton{padding:0 13px;font-size:7.2px}.heroCopy{top:30svh!important}.heroCopy h1{font-size:40px;max-width:60%}.heroLead{max-width:59%}.heroVehicleSearch{margin-top:17px!important}}
+@media(max-width:390px){.brandLockup .eyebrow{font-size:6.4px;max-width:150px}.navRoverButton{padding:0 13px;font-size:7.2px}.heroCopy{top:30svh!important}.heroCopy h1{font-size:40px;max-width:60%}.heroLead{max-width:59%}.heroVehicleSearch{margin-top:17px!important}.mobileModelCard{flex-basis:164px!important;width:164px!important;min-width:164px!important;height:82px!important;min-height:82px!important}.mobileModelCard span{font-size:11px!important}}
