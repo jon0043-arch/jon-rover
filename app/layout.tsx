@@ -7,6 +7,7 @@ import "./hero-search-clean.css";
 import "./concierge.css";
 import "./crm.css";
 import "./mobile-home-fix.css";
+import "./hero-no-fade.css";
 
 export const metadata = {
   title: "Jon Rover | Jaguar Land Rover Willow Grove",
