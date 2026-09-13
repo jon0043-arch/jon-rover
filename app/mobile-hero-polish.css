@@ -1,0 +1,32 @@
+/* Final mobile hero polish: keep Jon present without covering the primary actions. */
+@media (max-width:620px){
+  .heroJonPointing{
+    position:absolute!important;
+    right:-10px!important;
+    bottom:0!important;
+    left:auto!important;
+    top:auto!important;
+    width:38vw!important;
+    max-width:270px!important;
+    height:auto!important;
+    max-height:48svh!important;
+    object-fit:contain!important;
+    object-position:right bottom!important;
+    transform:none!important;
+    z-index:3!important;
+    pointer-events:none!important;
+  }
+
+  /* The copy/search/CTA must always sit above the portrait. */
+  .heroCopy{z-index:5!important;}
+  .heroVehicleSearch,.heroDealAction{position:relative!important;z-index:6!important;}
+
+  /* Give the deal CTA a clean lane on the left instead of running into Jon. */
+  .heroDealAction{max-width:48%!important;}
+  .heroDealAction>a{width:100%!important;min-width:0!important;justify-content:space-between!important;}
+}
+
+@media (max-width:390px){
+  .heroJonPointing{right:-14px!important;width:36vw!important;max-height:45svh!important;}
+  .heroDealAction{max-width:50%!important;}
+}
