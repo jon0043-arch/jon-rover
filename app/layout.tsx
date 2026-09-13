@@ -11,6 +11,7 @@ import "./mobile-home-fix.css";
 import "./hero-no-fade.css";
 import "./seo-landing.css";
 import "./model-nav.css";
+import "./mobile-hero-polish.css";
 
 const siteUrl = "https://www.jonrover.com";
 
