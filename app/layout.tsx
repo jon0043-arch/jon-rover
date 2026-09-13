@@ -12,20 +12,20 @@ import "./hero-no-fade.css";
 import "./seo-landing.css";
 import "./model-nav.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "https://jonrover.com");
+const siteUrl = "https://www.jonrover.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {default:"Jon Rover | Jaguar Land Rover Willow Grove",template:"%s | Jon Rover"},
   description:"Shop Jaguar and Land Rover inventory with Jon McGeehan at Jaguar Land Rover Willow Grove. Get personal vehicle recommendations, live inventory matches, and direct help from Jon.",
+  alternates:{canonical:"/"},
   applicationName:"Jon Rover",authors:[{name:"Jon McGeehan",url:siteUrl}],creator:"Jon McGeehan",publisher:"Jon Rover",
   keywords:["Jaguar Land Rover Willow Grove","Land Rover Willow Grove","Range Rover Willow Grove","Range Rover Philadelphia","Range Rover Sport Philadelphia","Defender Philadelphia","Jaguar Willow Grove","Jon McGeehan","Jon Rover"],
-  openGraph:{type:"website",siteName:"Jon Rover",title:"Jon Rover | Jaguar Land Rover Willow Grove",description:"A more personal way to shop Jaguar and Land Rover. Browse live Willow Grove inventory and get Jon's top vehicle picks.",images:[{url:"/hero-defender.png",width:1600,height:900,alt:"Jon Rover - Jaguar Land Rover Willow Grove"}]},
+  openGraph:{type:"website",url:siteUrl,siteName:"Jon Rover",title:"Jon Rover | Jaguar Land Rover Willow Grove",description:"A more personal way to shop Jaguar and Land Rover. Browse live Willow Grove inventory and get Jon's top vehicle picks.",images:[{url:"/hero-defender.png",width:1600,height:900,alt:"Jon Rover - Jaguar Land Rover Willow Grove"}]},
   twitter:{card:"summary_large_image",title:"Jon Rover | Jaguar Land Rover Willow Grove",description:"Browse live Jaguar Land Rover Willow Grove inventory and get personal vehicle recommendations from Jon McGeehan.",images:["/hero-defender.png"]},
   robots:{index:true,follow:true,googleBot:{index:true,follow:true,"max-image-preview":"large","max-snippet":-1,"max-video-preview":-1}},
   verification:process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?{google:process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION}:undefined,
 };
 const personSchema={"@context":"https://schema.org","@type":"Person",name:"Jon McGeehan",alternateName:"Jon Rover",url:siteUrl,telephone:"+1-609-221-8478",jobTitle:"Sales Guide",worksFor:{"@type":"Organization",name:"Jaguar Land Rover Willow Grove"},areaServed:["Willow Grove, PA","Philadelphia, PA","Montgomery County, PA","Bucks County, PA","South Jersey"],knowsAbout:["Jaguar vehicles","Land Rover vehicles","Range Rover","Range Rover Sport","Range Rover Velar","Range Rover Evoque","Defender","Discovery Sport","Land Rover Certified Pre-Owned","Jaguar Land Rover vehicle sales"]};
-const websiteSchema={"@context":"https://schema.org","@type":"WebSite",name:"Jon Rover",url:siteUrl,description:"Personal Jaguar and Land Rover vehicle shopping assistance from Jon McGeehan at Jaguar Land Rover Willow Grove.",publisher:{"@type":"Person",name:"Jon McGeehan"}};
+const websiteSchema={"@context":"https://schema.org","@type":"WebSite",name:"Jon Rover",alternateName:"JonRover.com",url:siteUrl,description:"Personal Jaguar and Land Rover vehicle shopping assistance from Jon McGeehan at Jaguar Land Rover Willow Grove.",publisher:{"@type":"Person",name:"Jon McGeehan",url:siteUrl}};
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){return <html lang="en"><body><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(personSchema)}}/><script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(websiteSchema)}}/>{children}</body></html>}
