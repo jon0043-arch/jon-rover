@@ -1,4 +1,4 @@
-/* Final mobile hero polish: Jon sits in front of the hero controls, with his face fully visible. */
+/* Final mobile hero polish: Jon sits in front of the controls and ends exactly at the hero bottom. */
 @media (max-width:620px){
   .heroJonPointing{
     position:absolute!important;
@@ -12,7 +12,7 @@
     max-height:48svh!important;
     object-fit:contain!important;
     object-position:right bottom!important;
-    transform:translateY(-34px)!important;
+    transform:none!important;
     z-index:8!important;
     pointer-events:none!important;
   }
@@ -20,7 +20,6 @@
   .heroCopy{z-index:5!important;}
   .heroVehicleSearch,.heroDealAction{position:relative!important;z-index:6!important;}
 
-  /* Keep the deal CTA in its own lane while Jon overlaps visually above the controls. */
   .heroDealAction{max-width:48%!important;}
   .heroDealAction>a{width:100%!important;min-width:0!important;justify-content:space-between!important;}
 }
@@ -30,7 +29,7 @@
     right:-14px!important;
     width:36vw!important;
     max-height:45svh!important;
-    transform:translateY(-30px)!important;
+    transform:none!important;
   }
   .heroDealAction{max-width:50%!important;}
 }
