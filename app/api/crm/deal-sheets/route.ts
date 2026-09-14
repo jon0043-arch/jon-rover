@@ -20,3 +20,17 @@ export async function GET(){
     return NextResponse.json({sheets});
   }catch(e){console.error('Deal sheet list failed',e);return NextResponse.json({error:'Could not load deal sheets'},{status:500});}
 }
+
+export async function DELETE(req:Request){
+  const c=config();
+  if(!c)return NextResponse.json({error:'CRM storage not configured'},{status:503});
+  try{
+    const {searchParams}=new URL(req.url);
+    const name=searchParams.get('name');
+    if(!name)return NextResponse.json({error:'Missing deal sheet name'},{status:400});
+    if(name.includes('/')||name.includes('\\')||name==='.'||name==='..')return NextResponse.json({error:'Invalid deal sheet name'},{status:400});
+    const del=await fetch(`${c.url}/storage/v1/object/${BUCKET}`,{method:'DELETE',headers:auth(c.key),body:JSON.stringify({prefixes:[name]})});
+    if(!del.ok){const detail=await del.text().catch(()=> '');console.error('Deal sheet delete failed',del.status,detail);return NextResponse.json({error:'Could not delete deal sheet'},{status:502});}
+    return NextResponse.json({ok:true});
+  }catch(e){console.error('Deal sheet delete failed',e);return NextResponse.json({error:'Could not delete deal sheet'},{status:500});}
+}
