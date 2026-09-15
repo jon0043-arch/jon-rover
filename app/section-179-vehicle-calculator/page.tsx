@@ -3,36 +3,54 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-const SUV_CAP_2026=32000;
-const modelData:{[key:string]:number}={"Range Rover":7100,"Range Rover Sport":7099,"Defender":6001,"Discovery":6614,"Other vehicle":6500};
-const models=Object.keys(modelData);
-const money=(n:number)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(n);
+const SUV_CAP_2026 = 32000;
+const money = (n:number) => new Intl.NumberFormat("en-US", { style:"currency", currency:"USD", maximumFractionDigits:0 }).format(n);
 
 export default function Page(){
- const [vehicle,setVehicle]=useState("Range Rover Sport");
- const [price,setPrice]=useState(110000);
- const [businessUse,setBusinessUse]=useState(100);
- const [taxRate,setTaxRate]=useState(32);
- const [gvwr,setGvwr]=useState(modelData["Range Rover Sport"]);
- const [condition,setCondition]=useState("New");
- const result=useMemo(()=>{const pct=Math.max(0,Math.min(100,businessUse))/100;const basis=Math.max(0,price)*pct;const eligible=businessUse>50&&gvwr>6000&&gvwr<=14000;const deduction=eligible?Math.min(basis,SUV_CAP_2026):0;return{basis,eligible,deduction,savings:deduction*(Math.max(0,Math.min(60,taxRate))/100)}},[price,businessUse,taxRate,gvwr]);
- const choose=(v:string)=>{setVehicle(v);setGvwr(modelData[v]||6500)};
- const cards=[{name:"Range Rover",gv:"Check exact configuration"},{name:"Range Rover Sport",gv:"Published configurations above 6,000 lbs"},{name:"Defender 90 / 110 / 130",gv:"Many configurations above 6,000 lbs"},{name:"Discovery",gv:"Check exact configuration"}];
- return <main style={{fontFamily:"Arial,Helvetica,sans-serif",color:"#101315",background:"#f7f7f5",minHeight:"100vh"}}>
- <header style={{background:"#0b0e10",color:"white",padding:"18px 5%",display:"flex",justifyContent:"space-between",alignItems:"center",gap:24,flexWrap:"wrap"}}><Link href="/" style={{color:"white",textDecoration:"none"}}><div style={{fontSize:24,fontWeight:800,letterSpacing:2}}>JON ROVER</div><small style={{letterSpacing:2,opacity:.7}}>JAGUAR LAND ROVER WILLOW GROVE</small></Link><nav style={{display:"flex",gap:22,alignItems:"center",flexWrap:"wrap",fontSize:13}}><Link href="/#inventory" style={{color:"white",textDecoration:"none"}}>INVENTORY</Link><Link href="/range-rover-sport-section-179" style={{color:"white",textDecoration:"none",borderBottom:"2px solid white",paddingBottom:5}}>SECTION 179</Link><Link href="/blog" style={{color:"white",textDecoration:"none"}}>BLOG</Link><a href="tel:+16092218478" style={{color:"white",textDecoration:"none",border:"1px solid #888",padding:"12px 20px"}}>CALL JON · 609-221-8478</a></nav></header>
- <section style={{background:"linear-gradient(110deg,#111 0%,#252a2d 55%,#111 100%)",color:"white",padding:"58px 5% 52px"}}><div style={{maxWidth:1100,margin:"auto"}}><p style={{letterSpacing:4,fontSize:12,opacity:.7}}>BUSINESS ADVANTAGE · 2026</p><h1 style={{fontSize:"clamp(42px,7vw,82px)",lineHeight:.94,margin:"12px 0 22px",maxWidth:850}}>SECTION 179<br/><span style={{fontWeight:300}}>VEHICLE TAX DEDUCTION</span></h1><p style={{fontSize:18,lineHeight:1.55,maxWidth:690,opacity:.9}}>Explore which Land Rover models may meet the heavy-SUV weight test and estimate your potential Section 179 deduction before you shop.</p></div></section>
- <div style={{background:"white",borderBottom:"1px solid #ddd",padding:"15px 5%"}}><div style={{maxWidth:1100,margin:"auto",display:"flex",gap:28,flexWrap:"wrap",fontSize:13,fontWeight:700}}><a href="#calculator" style={{color:"#111"}}>CALCULATOR</a><a href="#models" style={{color:"#111"}}>WHICH MODELS MAY QUALIFY</a><a href="#important" style={{color:"#111"}}>IMPORTANT INFORMATION</a></div></div>
- <div style={{maxWidth:1100,margin:"auto",padding:"34px 5% 55px"}}>
- <section id="calculator"><h2 style={{fontSize:36,margin:"0 0 8px"}}>Section 179 Calculator</h2><p style={{margin:"0 0 24px",color:"#555"}}>Estimate the Section 179 heavy-SUV amount and approximate federal tax impact.</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(310px,1fr))",gap:20}}>
- <div style={{background:"white",border:"1px solid #ddd",borderRadius:10,padding:26,display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:18}}>
- <label style={{display:"grid",gap:7,fontWeight:700}}>Vehicle<select value={vehicle} onChange={e=>choose(e.target.value)} style={field}>{models.map(m=><option key={m}>{m}</option>)}</select></label><label style={{display:"grid",gap:7,fontWeight:700}}>New or Used?<select value={condition} onChange={e=>setCondition(e.target.value)} style={field}><option>New</option><option>Used</option></select></label>
- <label style={{display:"grid",gap:7,fontWeight:700}}>Purchase Price<input type="number" value={price} onChange={e=>setPrice(Number(e.target.value))} style={field}/></label><label style={{display:"grid",gap:7,fontWeight:700}}>Business Use %<input type="number" min="0" max="100" value={businessUse} onChange={e=>setBusinessUse(Number(e.target.value))} style={field}/></label>
- <label style={{display:"grid",gap:7,fontWeight:700}}>Federal Tax Bracket %<input type="number" value={taxRate} onChange={e=>setTaxRate(Number(e.target.value))} style={field}/></label><label style={{display:"grid",gap:7,fontWeight:700}}>Vehicle GVWR (lbs)<input type="number" value={gvwr} onChange={e=>setGvwr(Number(e.target.value))} style={field}/></label>
- <div style={{gridColumn:"1/-1",background:"#0c151a",color:"white",padding:16,textAlign:"center",fontWeight:800}}>ESTIMATE UPDATES AUTOMATICALLY →</div></div>
- <div style={{background:"#eef1f2",borderRadius:10,padding:30,display:"grid",alignContent:"start",gap:10}}><span style={{fontWeight:700}}>Estimated Section 179 Deduction</span><strong style={{fontSize:54,lineHeight:1}}>{money(result.deduction)}</strong><span style={{color:"#555"}}>2026 heavy-SUV Section 179 limit: {money(SUV_CAP_2026)}</span><hr style={{width:"100%",border:0,borderTop:"1px solid #c7cccf",margin:"14px 0"}}/><span style={{fontWeight:700}}>Approx. Federal Tax Reduction</span><strong style={{fontSize:46,lineHeight:1}}>{money(result.savings)}</strong><span style={{color:"#555"}}>Using the {taxRate}% marginal rate entered above</span>{!result.eligible&&<div style={{marginTop:14,padding:15,background:"white",borderRadius:6}}>The inputs do not currently meet this estimator&apos;s heavy-SUV/business-use test. Different tax rules may apply.</div>}<div style={{marginTop:16,padding:16,background:"#dfeaf0",lineHeight:1.5,fontSize:13}}><strong>Estimate only.</strong> Actual tax treatment depends on your specific situation. Contact a qualified accountant or tax professional before making a vehicle purchase based on potential tax benefits.</div></div></div></section>
- <section id="models" style={{marginTop:48}}><h2 style={{fontSize:34,marginBottom:8}}>Which Land Rovers May Qualify for Section 179?</h2><p style={{color:"#555",lineHeight:1.6}}>Several Land Rover models have configurations with a GVWR above 6,000 pounds. Qualification must be checked on the exact vehicle; GVWR is not the same as curb weight.</p><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14,marginTop:22}}>{cards.map(c=><div key={c.name} style={{background:"white",border:"1px solid #ddd",borderRadius:8,padding:22}}><div style={{height:90,background:"linear-gradient(135deg,#e8e8e5,#c9cecf)",borderRadius:5,display:"grid",placeItems:"center",fontSize:34,marginBottom:18}}>LAND ROVER</div><h3 style={{margin:"0 0 8px"}}>{c.name}</h3><p style={{fontSize:13,lineHeight:1.5,color:"#555",minHeight:40}}>{c.gv}</p><div style={{marginTop:14,fontWeight:700}}>✓ POTENTIALLY ELIGIBLE</div><Link href="/#inventory" style={{display:"inline-block",marginTop:18,color:"#111",fontWeight:700}}>VIEW INVENTORY →</Link></div>)}</div><div style={{background:"#e2edf3",padding:18,borderRadius:7,marginTop:18,lineHeight:1.55}}><strong>Important:</strong> Qualification is based on the GVWR of the specific vehicle and the taxpayer&apos;s circumstances. Specifications vary by model year and configuration. Vehicle weight alone does not establish tax eligibility.</div></section>
- <section id="important" style={{marginTop:42,background:"#0c1114",color:"white",padding:28,display:"flex",justifyContent:"space-between",gap:20,alignItems:"center",flexWrap:"wrap"}}><div><strong style={{fontSize:19}}>Not sure which vehicle is right for your business?</strong><p style={{margin:"7px 0 0",opacity:.8}}>I can help find the vehicle and provide the details your accountant may want to review.</p></div><Link href="/#inventory" style={{background:"white",color:"#111",padding:"14px 20px",textDecoration:"none",fontWeight:800}}>VIEW CURRENT INVENTORY →</Link></section>
- <footer style={{padding:"30px 0 5px",fontSize:12,lineHeight:1.6,color:"#555"}}><strong style={{color:"#111",letterSpacing:1}}>TAX DISCLAIMER</strong><p>This calculator and page are for general educational and informational purposes only. They are not tax, legal, financial or accounting advice and do not determine eligibility. Tax laws and individual circumstances vary. Contact a qualified accountant or tax professional to confirm your eligibility, Section 179 treatment and any other tax deduction before making a vehicle purchase.</p></footer>
- </div></main>
+  const [price,setPrice] = useState(110000);
+  const [businessUse,setBusinessUse] = useState(100);
+
+  const deduction = useMemo(() => {
+    const pct = Math.max(0,Math.min(100,businessUse))/100;
+    return Math.min(Math.max(0,price)*pct,SUV_CAP_2026);
+  },[price,businessUse]);
+
+  return <main style={{fontFamily:"Arial,Helvetica,sans-serif",color:"#f7f7f4",background:"#080b0d",minHeight:"100vh"}}>
+    <header style={{background:"rgba(7,9,10,.96)",color:"white",padding:"18px 5%",display:"flex",justifyContent:"space-between",alignItems:"center",gap:24,flexWrap:"wrap",borderBottom:"1px solid #272b2e"}}>
+      <Link href="/" style={{color:"white",textDecoration:"none"}}><div style={{fontSize:24,fontWeight:800,letterSpacing:2}}>JON ROVER</div><small style={{letterSpacing:2,opacity:.6}}>JAGUAR LAND ROVER WILLOW GROVE</small></Link>
+      <nav style={{display:"flex",gap:22,alignItems:"center",flexWrap:"wrap",fontSize:13}}><Link href="/#inventory" style={{color:"white",textDecoration:"none"}}>INVENTORY</Link><Link href="/blog" style={{color:"white",textDecoration:"none"}}>BLOG</Link><a href="tel:+16092218478" style={{color:"white",textDecoration:"none",border:"1px solid #555",padding:"12px 20px"}}>CALL JON · 609-221-8478</a></nav>
+    </header>
+
+    <section style={{position:"relative",minHeight:"calc(100vh - 82px)",background:"linear-gradient(90deg,rgba(5,8,10,.98) 0%,rgba(5,8,10,.92) 48%,rgba(5,8,10,.52) 100%), url('/rangerover-hero.png') center/cover no-repeat",padding:"64px 5% 80px"}}>
+      <div style={{maxWidth:760,margin:"0 auto"}}>
+        <div style={{textAlign:"center",marginBottom:42}}>
+          <p style={{letterSpacing:6,fontSize:13,margin:"0 0 14px",opacity:.78}}>SECTION 179</p>
+          <h1 style={{fontSize:"clamp(44px,8vw,78px)",fontWeight:300,letterSpacing:3,lineHeight:1,margin:"0 0 22px"}}>CALCULATOR</h1>
+          <p style={{fontSize:"clamp(18px,3vw,25px)",fontWeight:300,margin:0,opacity:.78}}>See your potential deduction.</p>
+        </div>
+
+        <div style={{display:"grid",gap:18}}>
+          <label style={label}>PURCHASE PRICE
+            <div style={fieldWrap}><span style={{opacity:.55,fontSize:24}}>$</span><input inputMode="numeric" type="number" min="0" value={price} onChange={e=>setPrice(Number(e.target.value))} style={input}/></div>
+          </label>
+          <label style={label}>BUSINESS USE
+            <div style={fieldWrap}><input inputMode="numeric" type="number" min="0" max="100" value={businessUse} onChange={e=>setBusinessUse(Number(e.target.value))} style={input}/><span style={{opacity:.55,fontSize:24}}>%</span></div>
+          </label>
+
+          <div style={{background:"#f2f0eb",color:"#101214",padding:"20px",textAlign:"center",fontWeight:800,letterSpacing:3,borderRadius:6,marginTop:4}}>CALCULATE</div>
+
+          <div style={{border:"1px solid #62676a",background:"rgba(7,10,12,.78)",backdropFilter:"blur(10px)",padding:"38px 22px",textAlign:"center",borderRadius:8,marginTop:16}}>
+            <div style={{fontSize:13,letterSpacing:3,fontWeight:700,opacity:.8}}>YOU MAY BE ABLE TO DEDUCT UP TO</div>
+            <strong style={{display:"block",fontFamily:"Georgia,serif",fontSize:"clamp(58px,12vw,92px)",fontWeight:400,lineHeight:1.08,margin:"16px 0 8px"}}>{money(deduction)}</strong>
+          </div>
+
+          <p style={{fontSize:13,lineHeight:1.6,textAlign:"center",opacity:.65,maxWidth:620,margin:"8px auto 0"}}>Estimate only. Section 179 eligibility depends on the vehicle, business use and your individual tax situation. Heavy-SUV limits may apply. Consult your tax professional to confirm eligibility.</p>
+        </div>
+      </div>
+    </section>
+  </main>
 }
-const field={fontSize:16,padding:"13px",border:"1px solid #c9ced1",borderRadius:5,background:"white",width:"100%",boxSizing:"border-box" as const};
+
+const label={display:"grid",gap:9,fontSize:12,fontWeight:700,letterSpacing:3} as const;
+const fieldWrap={display:"flex",alignItems:"center",gap:8,border:"1px solid #666c70",background:"rgba(7,10,12,.78)",backdropFilter:"blur(8px)",padding:"0 20px",borderRadius:6,minHeight:82} as const;
+const input={fontSize:25,padding:"20px 0",border:0,outline:"none",background:"transparent",color:"white",width:"100%",fontFamily:"inherit"} as const;
