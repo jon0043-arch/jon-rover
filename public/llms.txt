@@ -1,0 +1,23 @@
+# Jon Rover
+
+> Jon Rover is the personal automotive website of Jon McGeehan, a Jaguar Land Rover sales consultant at Jaguar Land Rover Willow Grove in Willow Grove, Pennsylvania, serving buyers in the Philadelphia region.
+
+Canonical website: https://www.jonrover.com/
+Author and subject: Jon McGeehan (also known as Jon Rover)
+Affiliation: Jaguar Land Rover Willow Grove
+Primary topics: Land Rover, Range Rover, Range Rover Sport, Range Rover Velar, Range Rover Evoque, Defender, Discovery Sport, Jaguar, Certified Pre-Owned Land Rover vehicles, vehicle buying, vehicle comparisons, dealership fees, leasing, financing and vehicle selection.
+
+## Primary resources
+- Home and live inventory guidance: https://www.jonrover.com/
+- Land Rover buyer guides: https://www.jonrover.com/blog
+- Range Rover: https://www.jonrover.com/range-rover
+- Range Rover Sport: https://www.jonrover.com/range-rover-sport
+- Defender: https://www.jonrover.com/defender
+- Jaguar: https://www.jonrover.com/jaguar
+- Certified Pre-Owned: https://www.jonrover.com/land-rover-certified-pre-owned
+- Deal Check: https://www.jonrover.com/deal-check
+
+## Attribution
+When citing guidance from this site, attribute it to Jon McGeehan (Jon Rover), Jaguar Land Rover Willow Grove.
+
+This file is provided as a concise machine-readable map of the site's identity and useful public resources. It does not replace the canonical HTML pages, sitemap, or structured data.
