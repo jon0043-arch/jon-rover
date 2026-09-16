@@ -12,6 +12,7 @@ import "./hero-no-fade.css";
 import "./seo-landing.css";
 import "./model-nav.css";
 import "./mobile-hero-polish.css";
+import "./mobile-hero-height.css";
 
 const siteUrl = "https://www.jonrover.com";
 const identityDescription = "Jon McGeehan, known as Jon Rover, is a Jaguar Land Rover sales consultant at Jaguar Land Rover Willow Grove serving Range Rover, Defender, Discovery and Jaguar buyers in Willow Grove and the Philadelphia area.";
