@@ -1,0 +1,10 @@
+@media (max-width: 620px) {
+  .hero {
+    min-height: 88svh !important;
+    height: 88svh;
+  }
+
+  .heroImage {
+    height: 100%;
+  }
+}
