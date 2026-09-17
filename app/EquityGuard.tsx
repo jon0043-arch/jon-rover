@@ -39,32 +39,35 @@ export default function EquityGuard({title,condition,price,mileage=null,projecti
     return()=>{active=false};
   },[title,condition,price,mileage,projection,vehicleValuePrice]);
 
-  if(price==null||price<=0)return <div className="equityGuard equityGuardUnavailable"><div className="equityGuardHeading"><span>EQUITY GUARD</span><b>3-YEAR OUTLOOK</b></div><p>Down-payment guidance will appear when an advertised price is available.</p><p className="equityGuardDisclaimer">Estimate only. Not a trade appraisal, loan quote, lending decision or financial advice.</p></div>;
+  if(price==null||price<=0)return null;
   if(!estimate)return null;
 
   const projectedTradeValue=estimate.projectedTradeValue;
   const estimatedTaxAndRegistration=Math.round(price*ESTIMATED_TAX_REG_ALLOWANCE);
   const estimatedOutTheDoor=price+estimatedTaxAndRegistration;
   const balanceFactor=remainingBalanceFactor();
-
   const exactBreakEvenDown=Math.max(0,estimatedOutTheDoor-(projectedTradeValue/balanceFactor));
   const breakEvenDown=ceil500(exactBreakEvenDown);
   const tenPercentFloor=ceil500(price*PLANNING_DOWN_FLOOR);
   const targetDown=Math.max(tenPercentFloor,breakEvenDown);
   const amountFinanced=Math.max(0,estimatedOutTheDoor-targetDown);
   const projectedLoanBalance=Math.round(amountFinanced*balanceFactor);
-  const projectedBuffer=projectedTradeValue-projectedLoanBalance;
-  const calibrationLabel=estimate.basis==="live-inventory-calibrated"?`Calibrated from ${estimate.marketSampleSize} comparable live listings across ${estimate.marketYearCount} model years.`:"Uses Jon Rover's model-and-age curve because there are not enough comparable live listings yet.";
 
-  return <div className="equityGuard">
-    <div className="equityGuardHeading"><span>EQUITY GUARD</span><b>3-YEAR TRADE OUTLOOK</b></div>
-    <div className="equityGuardGrid">
-      <div><small>EST. TRADE VALUE</small><strong>{money(projectedTradeValue)}</strong></div>
-      <div><small>EST. LOAN BALANCE</small><strong>{money(projectedLoanBalance)}</strong></div>
-      <div className="equityGuardTarget"><small>TARGET DOWN</small><strong>{money(targetDown)}</strong></div>
+  return <div className="equityGuard equityGuardCompact">
+    <div className="equityGuardHeading"><span>EQUITY GUARD</span><b>3-YEAR OUTLOOK</b></div>
+    <div className="equityGuardHero">
+      <div><small>SUGGESTED DOWN</small><strong>{money(targetDown)}</strong></div>
+      <p>A planning target designed to help keep you around break-even when you trade in about 3 years.</p>
     </div>
-    <p>Equity Guard uses the <b>higher of a 10% planning floor or the estimated amount needed to be about break-even after 3 years</b>. For this vehicle, the 10% floor is <b>{money(tenPercentFloor)}</b> and the pure break-even calculation is <b>{money(breakEvenDown)}</b>. The advertised price already includes the dealer documentation fee; the model adds about <b>{money(estimatedTaxAndRegistration)}</b> for estimated tax, title and registration.</p>
-    <p className="equityGuardDisclaimer">Estimate only — not a guaranteed future value, trade appraisal, financing offer, lending decision or financial advice. A 10% down-payment floor is a planning heuristic, not a rule that fits every buyer. Tax, title, registration and other government charges vary by buyer and jurisdiction.</p>
-    <details><summary>HOW THIS ESTIMATE WORKS</summary><p>Equity Guard v2 starts with this vehicle&apos;s current vehicle price, model, model year and mileage. The displayed advertised price includes the dealer documentation fee, but that fee is excluded from the vehicle-value depreciation curve so it is not treated as resale value. The depreciation engine compares the vehicle with current Willow Grove inventory by model family and, when enough data exists, trim tier and model year to estimate a live price-aging curve. That live curve is blended with a model-and-age fallback so a small or unusual inventory sample cannot swing the result too far. The projection assumes about 10,000 additional miles per year and adjusts the future trade-to-retail spread for vehicle price and projected mileage. {calibrationLabel} Projected mileage at 36 months is about <b>{estimate.projectedMileage.toLocaleString()} miles</b>. Confidence: <b>{estimate.confidence}</b>. The financing model assumes a 72-month loan at 7.5% APR. The target down payment is the greater of 10% of the advertised price or the amount calculated to make the projected month-36 loan balance approximately equal to projected month-36 trade value. At the displayed target, the modeled difference between projected trade value and loan balance is about <b>{projectedBuffer>=0?money(projectedBuffer):`-${money(Math.abs(projectedBuffer))}`}</b>. Actual APR, credit approval, loan term, lender fees, sales tax, title, registration, trade tax credits, add-ons, rebates, incentives, vehicle condition, accident history, options, mileage, regional demand, market conditions and actual trade offers can materially change the result. Listing prices are not completed transaction prices, and projected trade values are estimates only. No future value, equity position or break-even outcome is guaranteed.</p></details>
+    <details>
+      <summary>SEE ESTIMATE</summary>
+      <div className="equityGuardDetailGrid">
+        <div><small>EST. TRADE VALUE</small><strong>{money(projectedTradeValue)}</strong></div>
+        <div><small>EST. LOAN BALANCE</small><strong>{money(projectedLoanBalance)}</strong></div>
+        <div><small>PURE BREAK-EVEN DOWN</small><strong>{money(breakEvenDown)}</strong></div>
+      </div>
+      <p>The displayed target is the higher of a 10% planning floor or the estimated down payment needed to be around break-even after 36 months.</p>
+      <p className="equityGuardDisclaimer">Estimate only. Assumes a 72-month loan at 7.5% APR, about 10,000 miles per year, and estimated tax, title and registration. Actual financing, vehicle condition, mileage, market values and trade offers will vary. Not a trade appraisal, financing offer, guaranteed future value or financial advice.</p>
+    </details>
   </div>;
 }
