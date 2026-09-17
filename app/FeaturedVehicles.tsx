@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 const JON_TEXT_NUMBER = "+12156087408";
 const FEATURED_VIN = "SALYL2EXXTA829287";
+const DOC_FEE = 490;
 
 type Vehicle = {title:string;condition?:string;mileage:number|null;price:number|null;vin:string;url:string;image?:string|null;stock?:string|null;exterior?:string|null;interior?:string|null};
 
@@ -29,7 +30,7 @@ export default function FeaturedVehicles(){
           <div style={{position:"absolute",left:"30px",right:"30px",bottom:"28px"}}><p className="eyebrow" style={{color:"#d5d9d6",margin:"0 0 10px"}}>LATEST FEATURE · THE VELAR FROM THE VIDEO</p><h3 style={{fontSize:"clamp(30px,4vw,56px)",lineHeight:1.02,fontWeight:300,letterSpacing:".02em",margin:0}}>{vehicle.title.toUpperCase()}</h3></div>
         </a>
         <div style={{padding:"clamp(28px,4vw,44px)",display:"flex",flexDirection:"column",justifyContent:"space-between",gap:"32px",borderLeft:"1px solid rgba(242,238,230,.28)",background:"rgba(8,12,10,.68)"}}>
-          <div><p className="eyebrow" style={{color:"#b3bbb7",margin:"0 0 18px"}}>LIVE WILLOW GROVE LISTING</p><div style={{fontSize:"clamp(38px,5vw,64px)",fontWeight:300,letterSpacing:".02em",marginBottom:"24px"}}>{money(vehicle.price)}</div><div style={{display:"grid",gap:"11px",fontSize:"11px",letterSpacing:".13em",color:"#d7dbd8"}}>{miles(vehicle.mileage)&&<span>{miles(vehicle.mileage)}</span>}<span>{vehicle.exterior||""}{vehicle.exterior&&vehicle.interior?" · ":""}{vehicle.interior||""}</span>{vehicle.stock&&<span>STOCK {vehicle.stock}</span>}<span>VIN {vehicle.vin}</span></div></div>
+          <div><p className="eyebrow" style={{color:"#b3bbb7",margin:"0 0 18px"}}>LIVE WILLOW GROVE LISTING</p><div style={{fontSize:"clamp(38px,5vw,64px)",fontWeight:300,letterSpacing:".02em",marginBottom:"6px"}}>{money(vehicle.price)}</div><div style={{fontSize:"9px",letterSpacing:".14em",color:"#9fa8a3",marginBottom:"24px"}}>+ {money(DOC_FEE)} DOCUMENTATION FEE</div><div style={{display:"grid",gap:"11px",fontSize:"11px",letterSpacing:".13em",color:"#d7dbd8"}}>{miles(vehicle.mileage)&&<span>{miles(vehicle.mileage)}</span>}<span>{vehicle.exterior||""}{vehicle.exterior&&vehicle.interior?" · ":""}{vehicle.interior||""}</span>{vehicle.stock&&<span>STOCK {vehicle.stock}</span>}<span>VIN {vehicle.vin}</span></div></div>
           <div style={{display:"grid",gap:"10px"}}><a href={sms} style={{minHeight:"56px",background:"#f2eee6",color:"#101513",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 20px",fontSize:"9px",letterSpacing:".18em"}}>TEXT JON ABOUT THIS VELAR <b style={{fontSize:"20px",fontWeight:300}}>→</b></a><a href={vehicle.url} target="_blank" rel="noreferrer" style={{minHeight:"48px",border:"1px solid rgba(242,238,230,.32)",color:"#f2eee6",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 18px",fontSize:"9px",letterSpacing:".18em"}}>VIEW THIS LISTING <b style={{fontSize:"16px",fontWeight:300}}>↗</b></a></div>
         </div>
       </article>
