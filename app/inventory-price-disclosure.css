@@ -1,0 +1,11 @@
+.inventoryPrice::after {
+  content: "INCLUDES $490 DEALER DOCUMENTATION FEE · TAX, TITLE & REGISTRATION ADDITIONAL";
+  display: block;
+  margin-top: 7px;
+  color: rgba(16, 21, 19, 0.48);
+  font-size: 8px;
+  line-height: 1.45;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
