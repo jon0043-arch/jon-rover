@@ -176,6 +176,17 @@
   font-weight: 300;
 }
 
+.inventoryPrice::after {
+  content: "PRICE INCLUDES DEALER DOC FEE";
+  display: block;
+  margin-top: 6px;
+  color: rgba(16, 21, 19, 0.48);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
 .whyJonPicked {
   margin-top: 22px;
   padding-top: 18px;
