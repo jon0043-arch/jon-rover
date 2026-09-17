@@ -4,6 +4,7 @@ import "./hero-position.css";
 import "./about-section.css";
 import "./reviews-section.css";
 import "./inventory-section.css";
+import "./equity-guard.css";
 import "./hero-search-clean.css";
 import "./concierge.css";
 import "./crm.css";
