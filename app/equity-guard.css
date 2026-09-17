@@ -1,12 +1,12 @@
 .equityGuard {
-  margin-top: 18px;
-  padding: 16px;
-  border: 1px solid rgba(16, 21, 19, 0.16);
-  background: rgba(16, 21, 19, 0.025);
+  margin-top: 16px;
+  padding: 14px 15px;
+  border: 1px solid rgba(16, 21, 19, 0.14);
+  background: rgba(16, 21, 19, 0.022);
 }
 
 .inventoryPrice::after {
-  content: "+ $490 DOCUMENTATION FEE";
+  content: "PRICE INCLUDES DEALER DOC FEE";
   display: block;
   margin-top: 7px;
   color: rgba(16, 21, 19, 0.46);
@@ -21,13 +21,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(16, 21, 19, 0.12);
 }
 
 .equityGuardHeading span,
 .equityGuardHeading b,
-.equityGuardGrid small,
+.equityGuardHero small,
+.equityGuardDetailGrid small,
 .equityGuard summary {
   font-size: 8px;
   letter-spacing: 0.14em;
@@ -37,52 +36,98 @@
 .equityGuardHeading span { font-weight: 650; }
 .equityGuardHeading b { color: rgba(16, 21, 19, 0.46); font-weight: 500; }
 
-.equityGuardGrid {
+.equityGuardHero {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  margin-top: 14px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 18px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(16, 21, 19, 0.10);
 }
 
-.equityGuardGrid > div {
-  min-width: 0;
-  padding: 0 10px;
-  border-left: 1px solid rgba(16, 21, 19, 0.10);
+.equityGuardHero small,
+.equityGuardDetailGrid small {
+  display: block;
+  color: rgba(16, 21, 19, 0.48);
+  line-height: 1.35;
 }
 
-.equityGuardGrid > div:first-child { padding-left: 0; border-left: 0; }
-.equityGuardGrid > div:last-child { padding-right: 0; }
-.equityGuardGrid small { display: block; color: rgba(16, 21, 19, 0.47); line-height: 1.35; }
-.equityGuardGrid strong { display: block; margin-top: 7px; font-size: 17px; line-height: 1.1; font-weight: 430; white-space: nowrap; }
-.equityGuardTarget strong { font-size: 20px; font-weight: 550; }
+.equityGuardHero strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 26px;
+  line-height: 1;
+  font-weight: 520;
+  white-space: nowrap;
+}
 
-.equityGuard > p,
-.equityGuard details p {
-  margin: 13px 0 0;
-  color: rgba(16, 21, 19, 0.58);
+.equityGuardHero p {
+  margin: 0;
+  color: rgba(16, 21, 19, 0.62);
   font-size: 10px;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
-.equityGuard > p b { color: rgba(16, 21, 19, 0.82); font-weight: 600; }
-
-.equityGuard > .equityGuardDisclaimer {
-  margin-top: 10px;
+.equityGuard details {
+  margin-top: 11px;
   padding-top: 10px;
   border-top: 1px solid rgba(16, 21, 19, 0.08);
-  color: rgba(16, 21, 19, 0.46);
-  font-size: 8.5px;
-  line-height: 1.55;
 }
 
-.equityGuard details { margin-top: 11px; padding-top: 10px; border-top: 1px solid rgba(16, 21, 19, 0.09); }
-.equityGuard summary { cursor: pointer; color: rgba(16, 21, 19, 0.58); list-style: none; }
+.equityGuard summary {
+  cursor: pointer;
+  color: rgba(16, 21, 19, 0.56);
+  list-style: none;
+}
+
 .equityGuard summary::-webkit-details-marker { display: none; }
 .equityGuard summary::after { content: " +"; }
 .equityGuard details[open] summary::after { content: " −"; }
-.equityGuardUnavailable > p { margin-bottom: 0; }
+
+.equityGuardDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 13px;
+}
+
+.equityGuardDetailGrid > div {
+  min-width: 0;
+  padding-right: 8px;
+}
+
+.equityGuardDetailGrid strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 470;
+  white-space: nowrap;
+}
+
+.equityGuard details p {
+  margin: 11px 0 0;
+  color: rgba(16, 21, 19, 0.56);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.equityGuard details .equityGuardDisclaimer {
+  padding-top: 9px;
+  border-top: 1px solid rgba(16, 21, 19, 0.07);
+  color: rgba(16, 21, 19, 0.44);
+  font-size: 8px;
+}
 
 @media (max-width: 420px) {
-  .equityGuardGrid { grid-template-columns: 1fr 1fr; row-gap: 14px; }
-  .equityGuardTarget { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px solid rgba(16, 21, 19, 0.10); padding: 12px 0 0 !important; }
+  .equityGuardHero {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .equityGuardDetailGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
