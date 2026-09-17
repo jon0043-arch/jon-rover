@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import snapshot from "../../../data/inventory.json";
+import { projectDepreciation } from "../../lib/depreciation";
 
 const INVENTORY_URL = "https://www.landroverwillowgrove.com/llm/inventory/";
 
@@ -7,6 +8,7 @@ type Vehicle = {title:string;condition:string;mileage:number|null;price:number|n
 type SnapshotVehicle = Vehicle & { images?: string[] };
 type Snapshot = { source?:string; expected?:number|null; count?:number; fetchedAt?:string|null; vehicles?:SnapshotVehicle[] };
 const bundledSnapshot = snapshot as Snapshot;
+
 function validMeta(value?:string|null){if(!value)return null;const v=String(value).trim();if(!v||/^(?:interior_color|exterior_color|interior|exterior|unknown|n\/a|null|none)$/i.test(v))return null;return v;}
 function hydrateVehicle(v:Vehicle):Vehicle{return{...v,stock:validMeta(v.stock),exterior:validMeta(v.exterior),interior:validMeta(v.interior),interiorFamily:validMeta(v.interiorFamily)}}
 function fetchBundledInventory():Vehicle[]{return(Array.isArray(bundledSnapshot.vehicles)?bundledSnapshot.vehicles:[]).filter(v=>v?.vin&&v?.condition).map(v=>hydrateVehicle({title:v.title,condition:v.condition,mileage:v.mileage??null,price:v.price??null,vin:v.vin,url:v.url||INVENTORY_URL,image:v.image??v.images?.[0]??null,stock:v.stock??null,exterior:v.exterior??null,interior:v.interior??null,interiorFamily:v.interiorFamily??null,features:Array.isArray(v.features)?v.features:[]}));}
@@ -19,4 +21,30 @@ function modelMatches(v:Vehicle,m:string){const t=searchable(v);if(m==="range ro
 function requestedColor(q:string){return["black","white","green","blue","red","silver","gray","grey","brown","bronze","gold"].find(c=>new RegExp(`\\b${c}\\b`,`i`).test(q))||null}
 function colorMatches(v:Vehicle,c:string){const x=(v.exterior||"").toLowerCase();return c==="gray"||c==="grey"?x.includes("gray")||x.includes("grey"):x.includes(c)}
 function score(v:Vehicle,q:string){let s=0;const b=parseBudget(q);if(b!=null&&v.price!=null)s+=v.price<=b?100:v.price<=b+10000?5:-1000;if(/\bnew\b/i.test(q))s+=v.condition.toLowerCase()==="new"?20:-50;if(/used|pre[- ]?owned|certified|cpo/i.test(q))s+=v.condition.toLowerCase()!=="new"?20:-50;const c=requestedColor(q);if(c&&v.exterior)s+=colorMatches(v,c)?60:-30;return s}
-export async function GET(request:NextRequest){const q=request.nextUrl.searchParams.get("q")??"";const condition=(request.nextUrl.searchParams.get("condition")??"all").toLowerCase();const browse=request.nextUrl.searchParams.get("browse")==="1";const requestedLimit=Number(request.nextUrl.searchParams.get("limit")??12)||12;const limit=browse?Math.min(Math.max(requestedLimit,1),250):Math.min(Math.max(requestedLimit,1),18);try{const bundled=fetchBundledInventory();const saved=await fetchSavedInventory();let unique=mergeInventory(saved,bundled);if(condition==="new")unique=unique.filter(v=>v.condition.toLowerCase()==="new");if(condition==="used")unique=unique.filter(v=>v.condition.toLowerCase()!=="new");let candidates=unique;const model=requestedModel(q);if(model)candidates=candidates.filter(v=>modelMatches(v,model));const budget=parseBudget(q);if(budget!=null)candidates=candidates.filter(v=>v.price!=null&&v.price<=budget+10000);if(browse){const vehicles=candidates.slice(0,limit);return NextResponse.json({total:candidates.length,count:vehicles.length,query:q,condition,vehicles,source:"Jon Rover enriched inventory snapshot",syncMethod:"snapshot-overlay",updatedAt:bundledSnapshot.fetchedAt||null});}const color=requestedColor(q);let vehicles=candidates.map(vehicle=>({vehicle,score:score(vehicle,q)})).sort((a,b)=>b.score-a.score||(a.vehicle.price??Infinity)-(b.vehicle.price??Infinity)).slice(0,color?Math.min(candidates.length,40):limit).map(x=>x.vehicle);if(color){const matching=vehicles.filter(v=>colorMatches(v,color));if(matching.length>=3)vehicles=matching;else if(matching.length)vehicles=[...matching,...vehicles.filter(v=>!colorMatches(v,color))];}vehicles=vehicles.slice(0,limit);return NextResponse.json({total:candidates.length,count:vehicles.length,query:q,condition,vehicles,source:"Jon Rover enriched inventory snapshot",syncMethod:"snapshot-overlay",updatedAt:bundledSnapshot.fetchedAt||null});}catch(e){console.error("Inventory route failed",e);return NextResponse.json({error:"Live inventory is temporarily unavailable."},{status:502})}}
+
+export async function GET(request:NextRequest){
+  const q=request.nextUrl.searchParams.get("q")??"";
+  const condition=(request.nextUrl.searchParams.get("condition")??"all").toLowerCase();
+  const browse=request.nextUrl.searchParams.get("browse")==="1";
+  const requestedLimit=Number(request.nextUrl.searchParams.get("limit")??12)||12;
+  const limit=browse?Math.min(Math.max(requestedLimit,1),250):Math.min(Math.max(requestedLimit,1),18);
+  try{
+    const bundled=fetchBundledInventory();
+    const saved=await fetchSavedInventory();
+    const marketInventory=mergeInventory(saved,bundled);
+    const withProjection=(v:Vehicle)=>({...v,equityGuard:projectDepreciation(v,marketInventory)});
+    let unique=[...marketInventory];
+    if(condition==="new")unique=unique.filter(v=>v.condition.toLowerCase()==="new");
+    if(condition==="used")unique=unique.filter(v=>v.condition.toLowerCase()!=="new");
+    let candidates=unique;
+    const model=requestedModel(q);if(model)candidates=candidates.filter(v=>modelMatches(v,model));
+    const budget=parseBudget(q);if(budget!=null)candidates=candidates.filter(v=>v.price!=null&&v.price<=budget+10000);
+    if(browse){const vehicles=candidates.slice(0,limit).map(withProjection);return NextResponse.json({total:candidates.length,count:vehicles.length,query:q,condition,vehicles,source:"Jon Rover enriched inventory snapshot",syncMethod:"snapshot-overlay",updatedAt:bundledSnapshot.fetchedAt||null});}
+    const color=requestedColor(q);
+    let vehicles=candidates.map(vehicle=>({vehicle,score:score(vehicle,q)})).sort((a,b)=>b.score-a.score||(a.vehicle.price??Infinity)-(b.vehicle.price??Infinity)).slice(0,color?Math.min(candidates.length,40):limit).map(x=>x.vehicle);
+    if(color){const matching=vehicles.filter(v=>colorMatches(v,color));if(matching.length>=3)vehicles=matching;else if(matching.length)vehicles=[...matching,...vehicles.filter(v=>!colorMatches(v,color))];}
+    vehicles=vehicles.slice(0,limit);
+    const projected=vehicles.map(withProjection);
+    return NextResponse.json({total:candidates.length,count:projected.length,query:q,condition,vehicles:projected,source:"Jon Rover enriched inventory snapshot",syncMethod:"snapshot-overlay",updatedAt:bundledSnapshot.fetchedAt||null});
+  }catch(e){console.error("Inventory route failed",e);return NextResponse.json({error:"Live inventory is temporarily unavailable."},{status:502})}
+}
