@@ -54,6 +54,16 @@
 }
 
 .equityGuard > p b { color: rgba(16, 21, 19, 0.82); font-weight: 600; }
+
+.equityGuard > .equityGuardDisclaimer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(16, 21, 19, 0.08);
+  color: rgba(16, 21, 19, 0.46);
+  font-size: 8.5px;
+  line-height: 1.55;
+}
+
 .equityGuard details { margin-top: 11px; padding-top: 10px; border-top: 1px solid rgba(16, 21, 19, 0.09); }
 .equityGuard summary { cursor: pointer; color: rgba(16, 21, 19, 0.58); list-style: none; }
 .equityGuard summary::-webkit-details-marker { display: none; }
