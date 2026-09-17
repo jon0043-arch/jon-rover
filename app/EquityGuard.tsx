@@ -8,7 +8,8 @@ type Props={title:string;condition:string;price:number|null;mileage?:number|null
 const TERM_MONTHS=72;
 const HORIZON_MONTHS=36;
 const APR=0.075;
-const FINANCED_TAX_FEE_ALLOWANCE=0.07;
+const ESTIMATED_TAX_REG_ALLOWANCE=0.07;
+const DOC_FEE=490;
 const PLANNING_DOWN_FLOOR=0.10;
 let marketPromise:Promise<DepreciationVehicle[]>|null=null;
 
@@ -41,7 +42,8 @@ export default function EquityGuard({title,condition,price,mileage=null,projecti
   if(!estimate)return null;
 
   const projectedTradeValue=estimate.projectedTradeValue;
-  const estimatedTaxesAndFees=Math.round(price*FINANCED_TAX_FEE_ALLOWANCE);
+  const estimatedTaxAndRegistration=Math.round(price*ESTIMATED_TAX_REG_ALLOWANCE);
+  const estimatedTaxesAndFees=estimatedTaxAndRegistration+DOC_FEE;
   const estimatedOutTheDoor=price+estimatedTaxesAndFees;
   const balanceFactor=remainingBalanceFactor();
 
@@ -67,8 +69,8 @@ export default function EquityGuard({title,condition,price,mileage=null,projecti
       <div><small>EST. LOAN BALANCE</small><strong>{money(projectedLoanBalance)}</strong></div>
       <div className="equityGuardTarget"><small>TARGET DOWN</small><strong>{money(targetDown)}</strong></div>
     </div>
-    <p>Equity Guard uses the <b>higher of a 10% planning floor or the estimated amount needed to be about break-even after 3 years</b>. For this vehicle, the 10% floor is <b>{money(tenPercentFloor)}</b> and the pure break-even calculation is <b>{money(breakEvenDown)}</b>. The model includes about <b>{money(estimatedTaxesAndFees)}</b> in estimated taxes and fees.</p>
-    <p className="equityGuardDisclaimer">Estimate only — not a guaranteed future value, trade appraisal, financing offer, lending decision or financial advice. A 10% down-payment floor is a planning heuristic, not a rule that fits every buyer.</p>
-    <details><summary>HOW THIS ESTIMATE WORKS</summary><p>Equity Guard v2 starts with this vehicle&apos;s current asking price, model, model year and mileage. It compares the vehicle with current Willow Grove inventory by model family and, when enough data exists, trim tier and model year to estimate a live price-aging curve. That live curve is blended with a model-and-age fallback so a small or unusual inventory sample cannot swing the result too far. The projection assumes about 10,000 additional miles per year and adjusts the future trade-to-retail spread for vehicle price and projected mileage. {calibrationLabel} Projected mileage at 36 months is about <b>{estimate.projectedMileage.toLocaleString()} miles</b>. Confidence: <b>{estimate.confidence}</b>. The financing model assumes a 72-month loan at 7.5% APR and roughly 7% for financed taxes and fees. The target down payment is the greater of 10% of the current vehicle price or the amount calculated to make the projected month-36 loan balance approximately equal to projected month-36 trade value. At the displayed target, the modeled difference between projected trade value and loan balance is about <b>{projectedBuffer>=0?money(projectedBuffer):`-${money(Math.abs(projectedBuffer))}`}</b>. Actual APR, credit approval, loan term, lender fees, sales tax, registration, documentation fees, trade tax credits, add-ons, rebates, incentives, vehicle condition, accident history, options, mileage, regional demand, market conditions and actual trade offers can materially change the result. Listing prices are not completed transaction prices, and projected trade values are estimates only. No future value, equity position or break-even outcome is guaranteed.</p></details>
+    <p>Equity Guard uses the <b>higher of a 10% planning floor or the estimated amount needed to be about break-even after 3 years</b>. For this vehicle, the 10% floor is <b>{money(tenPercentFloor)}</b> and the pure break-even calculation is <b>{money(breakEvenDown)}</b>. The model includes the dealership&apos;s <b>{money(DOC_FEE)} documentation fee</b> plus about <b>{money(estimatedTaxAndRegistration)}</b> in estimated taxes and registration.</p>
+    <p className="equityGuardDisclaimer">Estimate only — not a guaranteed future value, trade appraisal, financing offer, lending decision or financial advice. A 10% down-payment floor is a planning heuristic, not a rule that fits every buyer. Tax, registration and other government charges vary by buyer and jurisdiction.</p>
+    <details><summary>HOW THIS ESTIMATE WORKS</summary><p>Equity Guard v2 starts with this vehicle&apos;s current asking price, model, model year and mileage. It compares the vehicle with current Willow Grove inventory by model family and, when enough data exists, trim tier and model year to estimate a live price-aging curve. That live curve is blended with a model-and-age fallback so a small or unusual inventory sample cannot swing the result too far. The projection assumes about 10,000 additional miles per year and adjusts the future trade-to-retail spread for vehicle price and projected mileage. {calibrationLabel} Projected mileage at 36 months is about <b>{estimate.projectedMileage.toLocaleString()} miles</b>. Confidence: <b>{estimate.confidence}</b>. The financing model assumes a 72-month loan at 7.5% APR, includes a <b>{money(DOC_FEE)} documentation fee</b>, and uses roughly 7% of vehicle price as an estimated allowance for sales tax, registration and other government charges. The target down payment is the greater of 10% of the current vehicle price or the amount calculated to make the projected month-36 loan balance approximately equal to projected month-36 trade value. At the displayed target, the modeled difference between projected trade value and loan balance is about <b>{projectedBuffer>=0?money(projectedBuffer):`-${money(Math.abs(projectedBuffer))}`}</b>. Actual APR, credit approval, loan term, lender fees, sales tax, registration, documentation fees, trade tax credits, add-ons, rebates, incentives, vehicle condition, accident history, options, mileage, regional demand, market conditions and actual trade offers can materially change the result. Listing prices are not completed transaction prices, and projected trade values are estimates only. No future value, equity position or break-even outcome is guaranteed.</p></details>
   </div>;
 }
