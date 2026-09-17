@@ -4,6 +4,7 @@ const TERM_MONTHS=72;
 const HORIZON_MONTHS=24;
 const APR=0.075;
 const FINANCED_TAX_FEE_ALLOWANCE=0.07;
+const TRADE_TO_RETAIL_FACTOR=0.88;
 const TARGET_EQUITY_CUSHION=0.10;
 
 function money(value:number){return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(Math.max(0,value));}
@@ -34,22 +35,30 @@ function remainingBalanceFactor(){
 
 export default function EquityGuard({title,condition,price}:Props){
   if(price==null||price<=0)return <div className="equityGuard equityGuardUnavailable"><div className="equityGuardHeading"><span>EQUITY GUARD</span><b>24-MO OUTLOOK</b></div><p>Down-payment guidance will appear when a selling price is available.</p></div>;
+
   const rate=depreciationRate(title,condition);
-  const projectedValue=Math.round(price*(1-rate));
-  const projectedLoss=price-projectedValue;
+  const projectedRetailValue=Math.round(price*(1-rate));
+  const projectedTradeValue=Math.round(projectedRetailValue*TRADE_TO_RETAIL_FACTOR);
   const balanceFactor=remainingBalanceFactor();
   const estimatedAmountFinanced=price*(1+FINANCED_TAX_FEE_ALLOWANCE);
-  const breakEvenDown=round500(estimatedAmountFinanced-(projectedValue/balanceFactor));
-  const targetBalance=projectedValue*(1-TARGET_EQUITY_CUSHION);
+
+  // Minimum cash down needed so the projected loan balance is no higher than estimated trade value.
+  const breakEvenDown=round500(estimatedAmountFinanced-(projectedTradeValue/balanceFactor));
+
+  // Target a 10% cushion below projected trade value, not projected retail value.
+  const targetBalance=projectedTradeValue*(1-TARGET_EQUITY_CUSHION);
   const targetDown=round500(estimatedAmountFinanced-(targetBalance/balanceFactor));
+  const projectedLoanBalance=Math.round(Math.max(0,estimatedAmountFinanced-targetDown)*balanceFactor);
+  const projectedTradeEquity=Math.max(0,projectedTradeValue-projectedLoanBalance);
+
   return <div className="equityGuard">
-    <div className="equityGuardHeading"><span>EQUITY GUARD</span><b>24-MO OUTLOOK</b></div>
+    <div className="equityGuardHeading"><span>EQUITY GUARD</span><b>24-MO TRADE OUTLOOK</b></div>
     <div className="equityGuardGrid">
-      <div><small>EST. VALUE</small><strong>{money(projectedValue)}</strong></div>
-      <div><small>EST. DEPRECIATION</small><strong>−{money(projectedLoss)}</strong></div>
+      <div><small>EST. TRADE VALUE</small><strong>{money(projectedTradeValue)}</strong></div>
+      <div><small>EST. LOAN BALANCE</small><strong>{money(projectedLoanBalance)}</strong></div>
       <div className="equityGuardTarget"><small>DOWN PAYMENT TARGET</small><strong>{money(targetDown)}</strong></div>
     </div>
-    <p>Designed to target about 10% projected equity after 24 months. Estimated break-even down payment: <b>{money(breakEvenDown)}</b>.</p>
-    <details><summary>HOW THIS ESTIMATE WORKS</summary><p>This planning model uses the vehicle&apos;s age, condition and model family to estimate 24-month depreciation, then compares that value with a 72-month loan at 7.5% APR while allowing about 7% for financed taxes and fees. Actual market value, APR, taxes, fees and loan balance can differ. This is an estimate, not a guarantee or financial recommendation.</p></details>
+    <p>Built around estimated <b>trade-in value</b>, not future retail value. At the target down payment, projected 24-month trade equity is about <b>{money(projectedTradeEquity)}</b>. Estimated minimum down to avoid negative trade equity: <b>{money(breakEvenDown)}</b>.</p>
+    <details><summary>HOW THIS ESTIMATE WORKS</summary><p>This planning model first estimates the vehicle&apos;s 24-month retail value from its age, condition and model family, then applies a conservative trade-value allowance of about 88% of that projected retail value. It compares that estimated trade value with a 72-month loan at 7.5% APR while allowing about 7% for financed taxes and fees. The displayed target aims for the projected loan balance to sit about 10% below estimated trade value after 24 months. Actual trade offers, market value, mileage, condition, APR, taxes, fees and loan balance can differ. This is an estimate, not a guarantee or financial recommendation.</p></details>
   </div>;
 }
