@@ -42,6 +42,8 @@ jobs:
               url=f'{INDEX}?limit=100&page={page}'
               r=requests.get(url,headers=HEADERS,timeout=60)
               print('FETCH',page,r.status_code,len(r.text),r.url)
+              if re.search(r'VIN:\\s*[A-HJ-NPR-Z0-9]{17}',r.text,re.I):
+                  return r.text
               r.raise_for_status()
               return r.text
 
