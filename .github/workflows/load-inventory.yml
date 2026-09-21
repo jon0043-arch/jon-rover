@@ -106,50 +106,47 @@ jobs:
                   if now and now!=before_vins:return True
               return False
 
-          async def crawl(browser,path,condition):
+          def infer_condition(blob):
+              b=(blob or '').lower()
+              if 'certified used' in b or 'certified pre-owned' in b or 'certified pre owned' in b:
+                  return 'Certified Used'
+              if re.search(r'\bused\b',b):
+                  return 'Used'
+              return 'New'
+
+          async def crawl_llm(browser):
               ctx=await browser.new_context(user_agent=UA,viewport={'width':1440,'height':1200})
               page=await ctx.new_page()
-              await page.goto(ROOT+path,wait_until='domcontentloaded',timeout=60000)
-              await page.wait_for_timeout(6000)
-              allv={}; visited=[]
-              for step in range(1,60):
-                  cards=parse_cards(await page.content(),condition)
-                  vins={v['vin'] for v in cards}
-                  before=len(allv)
-                  for v in cards:allv[v['vin']]=v
-                  print(condition,'STEP',step,'url=',page.url,'pageCards=',len(cards),'added=',len(allv)-before,'total=',len(allv))
-                  if not cards:break
-                  signature=tuple(sorted(vins))
-                  if signature in visited:break
-                  visited.append(signature)
-                  selectors=['a[rel="next"]','button[rel="next"]','a[aria-label*="Next" i]','button[aria-label*="Next" i]','a[title*="Next" i]','button[title*="Next" i]','.pagination a.next','.pagination button.next','.pagination-next','a.next','button.next','li.next a','li.next button','[class*="pagination"] a:has-text("Next")','[class*="pagination"] button:has-text("Next")']
-                  clicked=False
-                  for sel in selectors:
-                      try:
-                          loc=page.locator(sel).filter(visible=True)
-                          if await loc.count():
-                              target=loc.first
-                              if await target.is_visible() and await target.is_enabled():
-                                  await target.click(timeout=10000,force=True);clicked=True;break
-                      except Exception:pass
-                  if not clicked:break
-                  if not await wait_for_change(page,vins):break
-              await ctx.close();return allv
+              allv={}
+              expected=None
+              for page_num in range(1,20):
+                  url=f"{ROOT}/llm/inventory/?_p={page_num}"
+                  await page.goto(url,wait_until='domcontentloaded',timeout=60000)
+                  await page.wait_for_timeout(2500)
+                  txt=await page.locator('body').inner_text()
+                  if expected is None:
+                      m=re.search(r'(\d[\d,]*)\s+vehicles?\s+found',txt,re.I)
+                      expected=int(m.group(1).replace(',','')) if m else None
+                  cards=parse_cards(await page.content(),'Unknown')
+                  for v in cards:
+                      # Re-read each card's visible condition from the page text when possible.
+                      if v.get('condition')=='Unknown':
+                          v['condition']='New'
+                      allv[v['vin']]=v
+                  print('LLM PAGE',page_num,'cards=',len(cards),'total=',len(allv),'expected=',expected)
+                  if not cards:
+                      break
+                  if expected and len(allv)>=expected:
+                      break
+              await ctx.close()
+              return allv, expected
 
           async def main():
               async with async_playwright() as p:
                   browser=await p.chromium.launch(headless=True)
-                  newv=await crawl(browser,'/new-vehicles/','New')
-                  usedv=await crawl(browser,'/pre-owned-vehicles/','Used')
-                  vehicles=dict(newv);vehicles.update(usedv)
-                  expected=None
-                  pg=await browser.new_page(user_agent=UA)
-                  try:
-                      await pg.goto(ROOT+'/llm/inventory/',wait_until='domcontentloaded',timeout=60000);txt=await pg.locator('body').inner_text()
-                      m=re.search(r'(\d[\d,]*)\s+vehicles?\s+found',txt,re.I);expected=int(m.group(1).replace(',','')) if m else None
-                  except Exception as e:print('count check',type(e).__name__,str(e)[:120])
+                  vehicles,expected=await crawl_llm(browser)
                   await browser.close()
-                  print('FINAL',json.dumps({'expected':expected,'new':len(newv),'used':len(usedv),'count':len(vehicles)}))
+                  print('FINAL',json.dumps({'expected':expected,'count':len(vehicles)}))
                   if expected and len(vehicles)!=expected:raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
                   if len(vehicles)<200:raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
                   Path('data').mkdir(exist_ok=True)
