@@ -114,43 +114,37 @@ jobs:
                   return 'Used'
               return 'New'
 
-          async def crawl_llm(browser):
+          async def crawl_filtered(browser,filter_type,condition):
               ctx=await browser.new_context(user_agent=UA,viewport={'width':1440,'height':1200})
               page=await ctx.new_page()
-              allv={}
-              expected=None
+              allv={}; seen_signatures=set()
               for page_num in range(1,20):
-                  url=f"{ROOT}/llm/inventory/?_p={page_num}"
+                  url=f"{ROOT}/llm/inventory/?_p={page_num}&type={filter_type}"
                   await page.goto(url,wait_until='domcontentloaded',timeout=60000)
                   await page.wait_for_timeout(2500)
-                  txt=await page.locator('body').inner_text()
-                  if expected is None:
-                      m=re.search(r'(\d[\d,]*)\s+vehicles?\s+found',txt,re.I)
-                      expected=int(m.group(1).replace(',','')) if m else None
-                  cards=parse_cards(await page.content(),'Unknown')
-                  for v in cards:
-                      # Re-read each card's visible condition from the page text when possible.
-                      if v.get('condition')=='Unknown':
-                          v['condition']='New'
-                      allv[v['vin']]=v
-                  print('LLM PAGE',page_num,'cards=',len(cards),'total=',len(allv),'expected=',expected)
-                  if not cards:
+                  cards=parse_cards(await page.content(),condition)
+                  vins=tuple(sorted(v['vin'] for v in cards))
+                  print(condition,'PAGE',page_num,'cards=',len(cards),'total_before=',len(allv))
+                  if not cards or vins in seen_signatures:
                       break
-                  if expected and len(allv)>=expected:
+                  seen_signatures.add(vins)
+                  for v in cards: allv[v['vin']]=v
+                  if len(cards)<20:
                       break
               await ctx.close()
-              return allv, expected
+              return allv
 
           async def main():
               async with async_playwright() as p:
                   browser=await p.chromium.launch(headless=True)
-                  vehicles,expected=await crawl_llm(browser)
+                  newv=await crawl_filtered(browser,'new','New')
+                  usedv=await crawl_filtered(browser,'used','Used')
+                  vehicles=dict(newv); vehicles.update(usedv)
                   await browser.close()
-                  print('FINAL',json.dumps({'expected':expected,'count':len(vehicles)}))
-                  if expected and len(vehicles)!=expected:raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
+                  print('FINAL',json.dumps({'new':len(newv),'used':len(usedv),'count':len(vehicles)}))
                   if len(vehicles)<200:raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
                   Path('data').mkdir(exist_ok=True)
-                  Path('data/inventory.json').write_text(json.dumps({'source':'Land Rover Willow Grove','expected':expected,'count':len(vehicles),'fetchedAt':datetime.now(timezone.utc).isoformat(),'vehicles':list(vehicles.values())},indent=2),encoding='utf-8')
+                  Path('data/inventory.json').write_text(json.dumps({'source':'Land Rover Willow Grove','expected':len(vehicles),'count':len(vehicles),'fetchedAt':datetime.now(timezone.utc).isoformat(),'vehicles':list(vehicles.values())},indent=2),encoding='utf-8')
 
           asyncio.run(main())
           PY
