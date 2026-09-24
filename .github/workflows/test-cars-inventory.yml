@@ -22,4 +22,11 @@ jobs:
               r=requests.get(u,headers=h,timeout=30)
               print('PAGE',p,'STATUS',r.status_code,'LEN',len(r.text),'VINS',len(set(re.findall(r'"vin":"([A-HJ-NPR-Z0-9]{17})"',r.text,re.I))))
               print(r.url)
+          print('--- JINA ---')
+          for p in (1,2,10):
+              u=base if p==1 else base+f'?page={p}'
+              ju='https://r.jina.ai/'+u
+              r=requests.get(ju,headers={'Accept':'text/plain','User-Agent':h['User-Agent']},timeout=60)
+              print('JINA',p,'STATUS',r.status_code,'LEN',len(r.text),'VINS',len(set(re.findall(r'VIN[:\\s]+([A-HJ-NPR-Z0-9]{17})',r.text,re.I))), 'RAWVIN', len(set(re.findall(r'\\b([A-HJ-NPR-Z0-9]{17})\\b',r.text,re.I))))
+              print(r.text[:300].replace('\\n',' '))
           PY
