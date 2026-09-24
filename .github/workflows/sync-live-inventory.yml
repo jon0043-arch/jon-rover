@@ -1,0 +1,64 @@
+name: Sync Live Jon Rover Inventory
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-live-inventory.yml'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for deployed inventory code
+        run: |
+          set -e
+          for i in $(seq 1 15); do
+            body="$(curl -fsS 'https://jonrover.com/api/inventory?limit=1' || true)"
+            echo "deployment check $i"
+            if echo "$body" | grep -q 'database-authoritative-v2'; then
+              echo "New inventory API is live"
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "Timed out waiting for deployment"
+          exit 1
+
+      - name: Sync Willow Grove inventory
+        env:
+          INVENTORY_SYNC_SECRET: ${{ secrets.INVENTORY_SYNC_SECRET }}
+        run: |
+          set -e
+          if [ -n "$INVENTORY_SYNC_SECRET" ]; then
+            response="$(curl -fsS -X POST -H "Authorization: Bearer $INVENTORY_SYNC_SECRET" 'https://jonrover.com/api/inventory/sync?quick=1')"
+          else
+            response="$(curl -fsS -X POST 'https://jonrover.com/api/inventory/sync?quick=1')"
+          fi
+          echo "$response"
+          RESPONSE="$response" python - <<'PY'
+          import json, os, sys
+          data=json.loads(os.environ["RESPONSE"])
+          if not data.get("ok"):
+              print("Sync did not return ok", data)
+              sys.exit(1)
+          if data.get("missing",0)!=0:
+              print("Refusing incomplete inventory sync", data)
+              sys.exit(1)
+          print("SYNCED", data.get("parsed"), "of", data.get("sourceTotal"), "vehicles")
+          PY
+
+      - name: Verify live inventory
+        run: |
+          set -e
+          response="$(curl -fsS 'https://jonrover.com/api/inventory?browse=1&limit=250')"
+          RESPONSE="$response" python - <<'PY'
+          import json, os, sys
+          data=json.loads(os.environ["RESPONSE"])
+          print("LIVE TOTAL",data.get("total"),"RETURNED",data.get("count"),"SOURCE",data.get("syncMethod"))
+          if data.get("syncMethod")!="database-authoritative-v2":
+              sys.exit(1)
+          if not data.get("total") or data.get("total")<150:
+              sys.exit(1)
+          PY
