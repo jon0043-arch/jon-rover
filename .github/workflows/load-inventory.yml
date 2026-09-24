@@ -166,3 +166,4 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m 'Refresh Willow Grove inventory snapshot'
           git push
+# manual inventory refresh trigger: 2026-09-24
