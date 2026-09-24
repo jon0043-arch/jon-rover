@@ -1,0 +1,25 @@
+name: Test Cars Inventory Feed
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/test-cars-inventory.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Cars.com dealer inventory
+        run: |
+          python - <<'PY'
+          import requests,re
+          base='https://www.cars.com/dealers/5378273/jaguar-land-rover-of-willow-grove/inventory/'
+          h={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36'}
+          for p in (1,2,10):
+              u=base if p==1 else base+f'?page={p}'
+              r=requests.get(u,headers=h,timeout=30)
+              print('PAGE',p,'STATUS',r.status_code,'LEN',len(r.text),'VINS',len(set(re.findall(r'"vin":"([A-HJ-NPR-Z0-9]{17})"',r.text,re.I))))
+              print(r.url)
+          PY
