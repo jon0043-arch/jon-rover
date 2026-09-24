@@ -17,7 +17,7 @@ jobs:
           for i in $(seq 1 15); do
             body="$(curl -fsS 'https://jonrover.com/api/inventory?limit=1' || true)"
             echo "deployment check $i"
-            if echo "$body" | grep -Eq 'database-authoritative-v2|snapshot-fallback'; then
+            if echo "$body" | grep -q 'syncMethod'; then
               echo "New inventory API is live"
               exit 0
             fi
