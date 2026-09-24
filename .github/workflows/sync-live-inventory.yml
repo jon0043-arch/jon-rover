@@ -32,9 +32,9 @@ jobs:
         run: |
           set -e
           if [ -n "$INVENTORY_SYNC_SECRET" ]; then
-            response="$(curl -LfsS -X POST -H "Authorization: Bearer $INVENTORY_SYNC_SECRET" 'https://jonrover.com/api/inventory/sync?quick=1')"
+            response="$(curl -LsS -X POST -H "Authorization: Bearer $INVENTORY_SYNC_SECRET" 'https://jonrover.com/api/inventory/sync?quick=1')"
           else
-            response="$(curl -LfsS -X POST 'https://jonrover.com/api/inventory/sync?quick=1')"
+            response="$(curl -LsS -X POST 'https://jonrover.com/api/inventory/sync?quick=1')"
           fi
           echo "$response"
           RESPONSE="$response" python - <<'PY'
