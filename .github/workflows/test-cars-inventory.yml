@@ -11,16 +11,26 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Test AutosToday dealer inventory
+      - name: Inspect Willow Grove 403 body
         run: |
           python - <<'PY'
           import requests,re
-          base='https://www.autostoday.com/dealerships/land-rover-willow-grove-willow-grove-pa'
-          h={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36'}
-          for p in (1,2,10,18):
-              u=base if p==1 else base+f'?page={p}'
-              r=requests.get(u,headers=h,timeout=30)
-              vins=set(re.findall(r'\\b[A-HJ-NPR-Z0-9]{17}\\b',r.text,re.I))
-              print('PAGE',p,'STATUS',r.status_code,'LEN',len(r.text),'VINS',len(vins),'URL',r.url)
-              print('SAMPLE',sorted(vins)[:3])
+          u='https://www.landroverwillowgrove.com/llm/inventory/?limit=100&page=1'
+          h={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36','Accept':'text/html,*/*'}
+          r=requests.get(u,headers=h,timeout=45)
+          t=r.text
+          patterns={
+            'rawvin':r'\\b[A-HJ-NPR-Z0-9]{17}\\b',
+            'data_vin':r'data[-_]vin',
+            'knownvin':r'SADCT2EX5TA757694',
+            'vehicle':r'vehicle',
+            'inventory':r'inventory',
+            'cloudflare':r'cloudflare|challenge|captcha'
+          }
+          print('STATUS',r.status_code,'LEN',len(t),'TYPE',r.headers.get('content-type'))
+          for k,p in patterns.items():
+              m=re.findall(p,t,re.I)
+              print(k,len(m),m[:20])
+          print('HEAD',repr(t[:1200]))
+          print('TAIL',repr(t[-1200:]))
           PY
