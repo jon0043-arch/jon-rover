@@ -178,16 +178,18 @@ export async function POST(req: NextRequest) {
 
     const pageTexts = [first];
     for (let p = 2; p <= pages; p++) {
-      pageTexts.push(await fetchText(`${INDEX}?_p=${p}`));
+      pageTexts.push(await fetchText(`${INDEX}?limit=100&page=${p}`));
     }
 
     const base = Array.from(new Map(pageTexts.flatMap(parse).map((v) => [v.vin, v])).values());
     const sourceTotal = statedTotal || base.length;
 
-    if (!base.length) {
+    if (!base.length || (statedTotal && base.length !== statedTotal)) {
       return NextResponse.json(
         {
-          error: `Dealer inventory feed was reached, but no vehicles could be parsed. Feed preview: ${first.slice(0, 900)}`,
+          error: base.length
+            ? `Dealer feed says ${statedTotal} vehicles but only ${base.length} were parsed; refusing a partial sync.`
+            : `Dealer inventory feed was reached, but no vehicles could be parsed. Feed preview: ${first.slice(0, 900)}`,
         },
         { status: 500 }
       );
@@ -209,6 +211,14 @@ export async function POST(req: NextRequest) {
       last_seen_at: now,
       updated_at: now,
     }));
+
+    // Make the current dealer feed authoritative: retire vehicles that disappeared,
+    // then reactivate/upsert every VIN present in this verified complete sync.
+    await rest("inventory_vehicles?active=eq.true", {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({ active: false, updated_at: now }),
+    });
 
     for (let i = 0; i < rows.length; i += 100) {
       await rest("inventory_vehicles?on_conflict=vin", {
