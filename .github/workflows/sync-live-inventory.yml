@@ -15,7 +15,7 @@ jobs:
         run: |
           set -e
           for i in $(seq 1 15); do
-            body="$(curl -fsS 'https://jonrover.com/api/inventory?limit=1' || true)"
+            body="$(curl -LfsS 'https://jonrover.com/api/inventory?limit=1' || true)"
             echo "deployment check $i"
             if echo "$body" | grep -q 'syncMethod'; then
               echo "New inventory API is live"
@@ -32,9 +32,9 @@ jobs:
         run: |
           set -e
           if [ -n "$INVENTORY_SYNC_SECRET" ]; then
-            response="$(curl -fsS -X POST -H "Authorization: Bearer $INVENTORY_SYNC_SECRET" 'https://jonrover.com/api/inventory/sync?quick=1')"
+            response="$(curl -LfsS -X POST -H "Authorization: Bearer $INVENTORY_SYNC_SECRET" 'https://jonrover.com/api/inventory/sync?quick=1')"
           else
-            response="$(curl -fsS -X POST 'https://jonrover.com/api/inventory/sync?quick=1')"
+            response="$(curl -LfsS -X POST 'https://jonrover.com/api/inventory/sync?quick=1')"
           fi
           echo "$response"
           RESPONSE="$response" python - <<'PY'
@@ -52,7 +52,7 @@ jobs:
       - name: Verify live inventory
         run: |
           set -e
-          response="$(curl -fsS 'https://jonrover.com/api/inventory?browse=1&limit=250')"
+          response="$(curl -LfsS 'https://jonrover.com/api/inventory?browse=1&limit=250')"
           RESPONSE="$response" python - <<'PY'
           import json, os, sys
           data=json.loads(os.environ["RESPONSE"])
