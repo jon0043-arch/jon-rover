@@ -1,4 +1,4 @@
-name: Test AI Inventory Access
+name: Inspect DealerRater Inventory Structure
 
 on:
   push:
@@ -11,25 +11,32 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Try recognized AI crawler identities
+      - name: Inspect DealerRater HTML cards and pagination
         run: |
+          pip -q install beautifulsoup4
           python - <<'PY'
           import requests,re
-          u='https://www.landroverwillowgrove.com/llm/inventory/?limit=100&page=1'
-          uas=[
-            'ChatGPT-User/1.0',
-            'OAI-SearchBot/1.0',
-            'GPTBot/1.2',
-            'ClaudeBot/1.0',
-            'GoogleOther',
-            'Mozilla/5.0 (compatible; ChatGPT-User/1.0; +https://openai.com/bot)'
-          ]
-          for ua in uas:
-              try:
-                  r=requests.get(u,headers={'User-Agent':ua,'Accept':'text/plain,text/markdown,text/html,*/*'},timeout=30)
-                  t=r.text
-                  vins=sorted(set(re.findall(r'VIN:\\s*([A-HJ-NPR-Z0-9]{17})',t,re.I)))
-                  print('UA',ua,'STATUS',r.status_code,'LEN',len(t),'VINS',len(vins),'HEAD',repr(t[:180]))
-              except Exception as e:
-                  print('FAIL',ua,type(e).__name__,str(e)[:100])
+          from bs4 import BeautifulSoup
+          u='https://www.dealerrater.com/classifieds/dealer/Jaguar-Land-Rover-Willow-Grove-cars-25316/'
+          h={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36'}
+          t=requests.get(u,headers=h,timeout=45).text
+          soup=BeautifulSoup(t,'html.parser')
+          vin=re.search(r'(?<![A-Z0-9])([A-HJ-NPR-Z0-9]{17})(?![A-Z0-9])',t,re.I).group(1)
+          node=soup.find(string=re.compile(vin,re.I))
+          print('VIN',vin,'NODE',getattr(node,'parent',None))
+          cur=node.parent if node else None
+          for depth in range(1,8):
+              if not cur: break
+              print('ANCESTOR',depth,cur.name,cur.get('class'),cur.get('id'),cur.attrs)
+              s=str(cur)
+              print(s[:5000])
+              if len(s)>10000: break
+              cur=cur.parent
+          print('PAGINATION')
+          seen=set()
+          for a in soup.find_all('a',href=True):
+              href=a['href']
+              txt=' '.join(a.stripped_strings)
+              if ('page' in href.lower() or txt.isdigit() or 'Next' in txt) and href not in seen:
+                  seen.add(href); print(txt,href)
           PY
