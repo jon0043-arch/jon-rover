@@ -1,177 +1,171 @@
-name: Load Jon Rover Inventory
+name: Refresh Jon Rover Inventory
 
 on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - '.github/workflows/load-inventory.yml'
-      - 'scripts/enrich_inventory.py'
-  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  sync:
+  refresh:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
       - name: Install inventory tooling
-        run: |
-          pip install playwright beautifulsoup4 requests
-          python -m playwright install --with-deps chromium
-      - name: Crawl complete Willow Grove inventory
+        run: pip install -q requests beautifulsoup4
+
+      - name: Build current Willow Grove inventory snapshot
         run: |
           python - <<'PY'
-          import json,re,requests
+          import json, re, requests
           from datetime import datetime, timezone
           from pathlib import Path
           from bs4 import BeautifulSoup
 
-          ROOT='https://www.landroverwillowgrove.com'
-          INDEX=ROOT+'/llm/inventory/'
-          UA='Mozilla/5.0 (compatible; JonRoverInventorySync/1.0)'
-          OLD_PATH=Path('data/inventory.json')
+          ROOT='https://www.dealerrater.com'
+          BASE='/classifieds/dealer/Jaguar-Land-Rover-Willow-Grove-cars-25316/'
+          DEALER='https://www.landroverwillowgrove.com'
+          DATA=Path('data/inventory.json')
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36'
+          headers={'User-Agent':UA,'Accept':'text/html,*/*'}
 
-          def normalize_text(body):
-              if '<' in body and '>' in body:
-                  try:
-                      return BeautifulSoup(body,'html.parser').get_text('\n')
-                  except Exception:
-                      pass
-              return body
-
-          def fetch(page):
-              target=f'{INDEX}?limit=100&page={page}'
-              headers={'User-Agent':UA,'Accept':'text/html,text/plain,text/markdown;q=0.9,*/*;q=0.8'}
-              try:
-                  r=requests.get(target,headers=headers,timeout=45)
-                  text=normalize_text(r.text)
-                  vins=len(re.findall(r'VIN:\s*[A-HJ-NPR-Z0-9]{17}',text,re.I))
-                  print('DIRECT',page,r.status_code,len(r.text),'vins=',vins)
-                  if vins >= 10:
-                      return text
-              except Exception as e:
-                  print('DIRECT_FAIL',page,type(e).__name__,str(e)[:120])
-
-              reader='https://r.jina.ai/'+target
-              r=requests.get(reader,headers={'User-Agent':UA,'Accept':'text/plain'},timeout=60)
-              r.raise_for_status()
-              text=r.text
-              vins=len(re.findall(r'VIN:\s*[A-HJ-NPR-Z0-9]{17}',text,re.I))
-              print('READER',page,r.status_code,len(text),'vins=',vins)
-              if vins < 1:
-                  raise RuntimeError(f'No VINs found on reader page {page}')
-              return text
-
-          def num(s):
-              if not s:return None
-              d=re.sub(r'[^0-9]','',s)
-              return int(d) if d else None
-
-          def clean_title(s):
-              s=re.sub(r'^\s*[*-]\s*','',s or '')
-              m=re.match(r'^\[([^\]]+)\]\((https?://[^)]+)\)$',s)
-              if m:s=m.group(1)
-              return re.sub(r'\s+',' ',s).strip()
-
-          def parse(text):
-              lines=[re.sub(r'\s+',' ',x).strip() for x in text.splitlines()]
-              nonempty=[x for x in lines if x]
-              out=[]
-              for i,line in enumerate(nonempty):
-                  vm=re.search(r'VIN:\s*([A-HJ-NPR-Z0-9]{17})',line,re.I)
-                  if not vm:continue
-                  vin=vm.group(1).upper()
-                  prev=nonempty[max(0,i-16):i]
-                  condition=None; ci=None
-                  for j in range(len(prev)-1,-1,-1):
-                      if re.fullmatch(r'(Certified Used|Used|New)',prev[j],re.I):
-                          condition=prev[j]
-                          ci=j
-                          break
-                  if not condition:continue
-                  miles=next((x for x in reversed(prev) if re.fullmatch(r'[\d,]+\s+miles?',x,re.I)),None)
-                  price_line=next((x for x in reversed(prev) if re.fullmatch(r'\$[\d,]+',x)),None)
-                  call_price=any(re.fullmatch(r'Call for price',x,re.I) for x in prev)
-                  title_line=''
-                  for cand in reversed(prev[:ci]):
-                      raw=clean_title(cand)
-                      if re.match(r'^(19|20)\d{2}\s+',raw):
-                          title_line=cand
-                          break
-                  if not title_line:
-                      for cand in reversed(prev[:ci]):
-                          raw=clean_title(cand)
-                          if re.match(r'^(Vehicle Inventory|Land Rover Willow Grove|Filter Examples|Active Filters|Page \d+)',raw,re.I):continue
-                          if raw.startswith('$') or re.fullmatch(r'[\d,]+\s+miles?',raw,re.I):continue
-                          title_line=cand;break
-                  title=clean_title(title_line) or vin
-                  link=None
-                  for cand in reversed(prev[:ci+1]):
-                      m=re.search(r'\((https?://[^)]+)\)',cand)
-                      if m and ('/inventory/' in m.group(1) or '/new-' in m.group(1) or '/used-' in m.group(1)):
-                          link=m.group(1);break
-                  out.append({
-                      'vin':vin,'title':title,'condition':condition,
-                      'mileage':num(miles),'price':num(price_line) if price_line else None,
-                      'url':link or ROOT+'/?s='+vin,
-                      'image':None,'images':[],'stock':None,'exterior':None,
-                      'interior':None,'interiorFamily':None,'features':[]
-                  })
-              return out,nonempty
-
-          old={}
           try:
-              old_data=json.loads(OLD_PATH.read_text(encoding='utf-8'))
-              old={str(v.get('vin','')).upper():v for v in old_data.get('vehicles',[]) if v.get('vin')}
-              print('OLD',len(old))
-          except Exception as e:
-              print('OLD_FAIL',type(e).__name__)
+              old_payload=json.loads(DATA.read_text(encoding='utf-8'))
+          except Exception:
+              old_payload={'vehicles':[]}
+          old_vehicles=old_payload.get('vehicles') or []
+          old_by_vin={str(v.get('vin','')).upper():v for v in old_vehicles if v.get('vin')}
 
-          first=fetch(1)
-          firstv,lines=parse(first)
-          joined=' '.join(lines)
-          tm=re.search(r'([\d,]+)\s+vehicles?\s+found',joined,re.I)
-          expected=int(tm.group(1).replace(',','')) if tm else None
-          pm=re.search(r'Page\s+1\s+of\s+(\d+)',joined,re.I)
-          pages=int(pm.group(1)) if pm else (max(1,(expected+99)//100) if expected else 3)
+          def get(path):
+              r=requests.get(ROOT+path,headers=headers,timeout=45)
+              r.raise_for_status()
+              return r.text
 
-          byvin={v['vin']:v for v in firstv}
-          for p in range(2,pages+1):
-              vs,_=parse(fetch(p))
-              for v in vs:byvin[v['vin']]=v
+          def as_int(value):
+              if value in (None,''): return None
+              digits=re.sub(r'[^0-9]','',str(value))
+              return int(digits) if digits else None
 
-          vehicles=[]
-          for v in byvin.values():
-              prior=old.get(v['vin'],{})
-              for key in ('image','images','stock','exterior','interior','interiorFamily','features'):
-                  if prior.get(key) not in (None,'',[]):
-                      v[key]=prior.get(key)
-              if '/?s=' in v['url'] and prior.get('url') and '/inventory/' in prior.get('url',''):
-                  v['url']=prior['url']
-              vehicles.append(v)
+          def family(value):
+              x=(value or '').lower()
+              if 'caraway' in x or any(k in x for k in ['tan','beige','camel','caramel']): return 'tan'
+              if 'light cloud' in x or any(k in x for k in ['ivory','cream','off-white','off white','cloud/ebony','cloud / ebony']): return 'off-white'
+              if 'ebony' in x or 'black' in x: return 'black'
+              if 'deep garnet' in x or any(k in x for k in ['burgundy','wine','garnet','oxblood']): return 'red-wine'
+              return None
 
-          print('FINAL',json.dumps({'expected':expected,'pages':pages,'count':len(vehicles)}))
-          if expected and len(vehicles)!=expected:
-              raise SystemExit(f'Parsed {len(vehicles)} of expected {expected}; refusing partial inventory')
-          if len(vehicles)<150:
-              raise SystemExit(f'Only parsed {len(vehicles)} vehicles; refusing partial inventory')
+          first=get(BASE)
+          soup=BeautifulSoup(first,'html.parser')
+          pages=1
+          for a in soup.find_all('a',href=True):
+              m=re.search(r'/page(\d+)/',a['href'])
+              if m: pages=max(pages,int(m.group(1)))
 
-          OLD_PATH.parent.mkdir(exist_ok=True)
-          OLD_PATH.write_text(json.dumps({
-              'source':'Land Rover Willow Grove',
-              'expected':expected,
-              'count':len(vehicles),
-              'fetchedAt':datetime.now(timezone.utc).isoformat(),
-              'vehicles':vehicles
-          },indent=2),encoding='utf-8')
+          feed_order=[]
+          current={}
+          for p in range(1,pages+1):
+              path=BASE if p==1 else BASE+f'page{p}/'
+              page=first if p==1 else get(path)
+              s=BeautifulSoup(page,'html.parser')
+              page_count=0
+              for tag in s.find_all('script',attrs={'type':'application/ld+json'}):
+                  raw=tag.string or tag.get_text()
+                  if 'vehicleIdentificationNumber' not in raw:
+                      continue
+                  try:
+                      d=json.loads(raw)
+                  except Exception:
+                      continue
+                  if not isinstance(d,dict) or d.get('@type')!='Car':
+                      continue
+                  vin=str(d.get('vehicleIdentificationNumber') or '').upper().strip()
+                  if not re.fullmatch(r'[A-HJ-NPR-Z0-9]{17}',vin):
+                      continue
+
+                  offers=d.get('offers') if isinstance(d.get('offers'),dict) else {}
+                  images=d.get('image') or []
+                  if isinstance(images,str): images=[images]
+                  images=[x for x in images if isinstance(x,str) and x.startswith('http')]
+
+                  year=as_int(d.get('modelDate'))
+                  make=str(d.get('manufacturer') or '').strip() or None
+                  model=str(d.get('model') or '').strip() or None
+                  title=str(d.get('name') or '').strip()
+                  if not title:
+                      title=' '.join(str(x) for x in [year,make,model] if x)
+                  prefix=' '.join(str(x) for x in [year,make,model] if x)
+                  trim=title[len(prefix):].strip() if prefix and title.lower().startswith(prefix.lower()) else None
+                  trim=trim or None
+
+                  prior=old_by_vin.get(vin,{})
+                  prior_url=str(prior.get('url') or '')
+                  listing_url=prior_url if prior_url.startswith(DEALER+'/inventory/') else f'{DEALER}/?s={vin}'
+                  condition='New' if 'NewCondition' in str(d.get('itemCondition') or '') else 'Used'
+                  interior=str(d.get('vehicleInteriorColor') or '').strip() or None
+                  exterior=str(d.get('color') or '').strip() or None
+
+                  vehicle={
+                      'vin':vin,
+                      'title':title,
+                      'condition':condition,
+                      'mileage':as_int(d.get('mileageFromOdometer')),
+                      'price':as_int(offers.get('price')),
+                      'url':listing_url,
+                      'image':images[0] if images else prior.get('image'),
+                      'images':images if images else (prior.get('images') or []),
+                      'stock':str(d.get('sku') or '').strip() or prior.get('stock'),
+                      'exterior':exterior or prior.get('exterior'),
+                      'interior':interior or prior.get('interior'),
+                      'interiorFamily':family(interior) or prior.get('interiorFamily'),
+                      'features':prior.get('features') or [],
+                      'year':year,
+                      'make':make,
+                      'model':model,
+                      'trim':trim,
+                  }
+                  if vin not in current:
+                      feed_order.append(vin)
+                  current[vin]=vehicle
+                  page_count+=1
+              print('PAGE',p,'CARS',page_count,'UNIQUE',len(current))
+
+          if len(current) < 150:
+              raise SystemExit(f'Only parsed {len(current)} vehicles; refusing partial inventory')
+
+          # Keep familiar site ordering for vehicles still in stock, then append arrivals.
+          ordered=[]
+          used=set()
+          for prior in old_vehicles:
+              vin=str(prior.get('vin') or '').upper()
+              if vin in current and vin not in used:
+                  ordered.append(current[vin]); used.add(vin)
+          for vin in feed_order:
+              if vin not in used:
+                  ordered.append(current[vin]); used.add(vin)
+
+          changed=ordered != old_vehicles
+          fetched_at=datetime.now(timezone.utc).isoformat() if changed else old_payload.get('fetchedAt')
+          payload={
+              'source':'Jaguar Land Rover Willow Grove syndicated inventory',
+              'expected':len(ordered),
+              'count':len(ordered),
+              'fetchedAt':fetched_at,
+              'vehicles':ordered,
+          }
+          DATA.write_text(json.dumps(payload,indent=2),encoding='utf-8')
+          print('FINAL',json.dumps({'pages':pages,'count':len(ordered),'changed':changed,'fetchedAt':fetched_at}))
           PY
-      - name: Enrich make, model, VIN details, mileage and colors
-        run: python scripts/enrich_inventory.py
+
       - name: Commit inventory snapshot
         run: |
           git config user.name 'jon-rover-bot'
