@@ -1,14 +1,168 @@
 "use client";
+
 import "./crm.css";
-import "./orbit-motion.css";
-import {useEffect,useMemo,useState} from 'react';
-type Lead={id:string;name?:string;phone?:string;email?:string;status:string;lead_score:number;temperature?:string;last_seen_at:string;last_request?:string;summary?:string;next_best_action?:string;desired_models?:string[];desired_exterior?:string[];desired_interior?:string[];budget_max?:number;timeframe?:string;trade_in?:boolean;wants_new?:boolean;wants_used?:boolean;transcript?:any[];};
-const who=(l:Lead)=>l.name||l.phone||l.email||'Anonymous shopper';
-const contactParts=(l:Lead)=>[l.name,l.phone,l.email].filter((v):v is string=>Boolean(v&&String(v).trim()));
-const contactIdentity=(l:Lead)=>contactParts(l).join(' · ')||'Anonymous shopper';
-const ago=(d:string)=>{const s=Math.max(1,Math.floor((Date.now()-new Date(d).getTime())/1000));return s<60?`${s}s`:s<3600?`${Math.floor(s/60)}m`:s<86400?`${Math.floor(s/3600)}h`:`${Math.floor(s/86400)}d`};
-function pos(l:Lead,i:number,total:number){const score=Math.max(0,Math.min(100,l.lead_score||0));const radius=10+(100-score)*.36;const a=((i/Math.max(total,1))*Math.PI*2)+(score*.071);const seed=(i+1)*17+(l.id?.charCodeAt(0)||0);const dx1=((seed*7)%13)-6,dy1=((seed*11)%15)-7,dx2=((seed*13)%17)-8,dy2=((seed*5)%13)-6,duration=6.2+((seed%8)*.55),delay=-((seed%11)*.43);return{left:`${50+Math.cos(a)*radius}%`,top:`${50+Math.sin(a)*radius}%`,['--dx1' as any]:`${dx1}px`,['--dy1' as any]:`${dy1}px`,['--dx2' as any]:`${dx2}px`,['--dy2' as any]:`${dy2}px`,['--float-duration' as any]:`${duration}s`,['--float-delay' as any]:`${delay}s`};}
-const money=(n:string)=>{const x=Number(n.replace(/,/g,''));return Number.isFinite(x)?`$${x.toLocaleString()}`:`$${n}`};
-function conversationBrief(l:Lead){const transcript=Array.isArray(l.transcript)?l.transcript:[];const users=transcript.filter((m:any)=>m?.role==='user'&&typeof m.content==='string');const text=users.map((m:any)=>m.content).join(' ');const lower=text.toLowerCase();const parts:string[]=[];const model=l.desired_models?.[0]||(['Range Rover Sport','Range Rover','Defender 130','Defender 110','Defender 90','Discovery Sport','Discovery','Velar','Evoque','F-PACE'].find(m=>lower.includes(m.toLowerCase())));const mode=/\bleas(?:e|ing)\b/i.test(text)?'lease':/\bfinanc(?:e|ing)\b/i.test(text)?'finance':/\bcash\b/i.test(text)?'cash':null;const condition=l.wants_new?'New':l.wants_used?'Used':/\bnew\b/i.test(text)?'New':/used|pre[- ]?owned|cpo|certified/i.test(text)?'Used':null;if(model||mode||condition)parts.push([condition,model,mode].filter(Boolean).join(' '));const colorBits:string[]=[];const ext=text.match(/\b(white|black|green|blue|red|silver|gr[ae]y|bronze|gold)\s+(?:exterior|paint)/i)?.[1]||text.match(/\b(white|black|green|blue|red|silver|gr[ae]y|bronze|gold)\s+with\s+(?:a\s+)?(?:black|white|tan|caraway|ebony|light cloud)/i)?.[1]||l.desired_exterior?.[0];const int=text.match(/\b(black|white|tan|beige|caraway|ebony|light cloud|garnet|burgundy)\s+(?:interior|seats?)/i)?.[1]||text.match(/with\s+(?:a\s+)?(black|white|tan|beige|caraway|ebony|light cloud|garnet|burgundy)\s+interior/i)?.[1]||l.desired_interior?.[0];if(ext)colorBits.push(`${ext} ext.`);if(int)colorBits.push(`${int} int.`);if(/black roof/i.test(text))colorBits.push('black roof');if(/black wheels?/i.test(text))colorBits.push('black wheels');if(colorBits.length)parts.push(colorBits.join(', '));const monthly=text.match(/\$?\s*([\d,]{3,6})\s*(?:\/\s*(?:mo|month)|per month|monthly)/i);const down=text.match(/\$?\s*([\d,]{3,6})\s*(?:down|due at signing|das)/i);let annual=text.match(/\b(7,?500|10,?000|12,?000|15,?000|7\.5k|10k|12k|15k)\s*(?:miles?|mi)?\s*(?:\/|per)?\s*(?:yr|year|annually)?/i)?.[1]||null;if(!annual){for(let i=1;i<transcript.length;i++){const a=transcript[i-1],u=transcript[i];if(a?.role==='assistant'&&u?.role==='user'&&/miles per year|annual mileage|7,?500.*10,?000.*12,?000/i.test(a.content||'')){annual=String(u.content||'').match(/\b(7,?500|10,?000|12,?000|15,?000|7\.5k|10k|12k|15k)\b/i)?.[1]||null;if(annual)break;}}}const dealBits:string[]=[];if(monthly)dealBits.push(`${money(monthly[1])}/mo target`);if(down)dealBits.push(`${money(down[1])} DAS`);if(annual)dealBits.push(`${annual.replace(/,000$/,'k')}/yr`);if(l.budget_max&&!monthly)dealBits.push(`up to $${l.budget_max.toLocaleString()}`);if(dealBits.length)parts.push(dealBits.join(', '));const timing=l.timeframe||(/\btoday\b/i.test(text)?'today':/\btomorrow\b/i.test(text)?'tomorrow':/this week/i.test(text)?'this week':/this month/i.test(text)?'this month':null);if(timing)parts.push(`Timing: ${timing}`);if(l.trade_in||/\btrade(?:-?in)?\b/i.test(text))parts.push('Has trade');const latest=String(users.at(-1)?.content||'');if(/already (?:bought|purchased|leased)|bought (?:a|an|the)|going to buy|buying|went with/i.test(latest)&&/lexus|bmw|mercedes|audi|porsche|volvo|tesla/i.test(latest)){const brand=latest.match(/\b(Lexus|BMW|Mercedes|Audi|Porsche|Volvo|Tesla)\b/i)?.[1];parts.push(`⚠ Going with ${brand||'another brand'}`);}else if(/not interested|stop contacting|don't contact|do not contact|never ?mind|no longer looking/i.test(latest))parts.push('⚠ No longer shopping');if(!parts.length)return l.summary||l.last_request||'No buying details captured yet.';return parts.slice(0,5).join(' · ');}
-export default function CRM(){const[leads,setLeads]=useState<Lead[]>([]),[selected,setSelected]=useState<Lead|null>(null),[view,setView]=useState<'orbit'|'chats'|'leads'>('orbit'),[error,setError]=useState('');async function load(){const r=await fetch('/api/crm',{cache:'no-store'});const d=await r.json();if(!r.ok){setError(d.error);return}setLeads(d.leads||[]);setError('');}useEffect(()=>{load();const t=setInterval(load,10000);return()=>clearInterval(t)},[]);const ranked=useMemo(()=>[...leads].sort((a,b)=>(b.lead_score||0)-(a.lead_score||0)),[leads]);useEffect(()=>{setSelected(prev=>{if(!ranked.length)return null;if(!prev)return ranked[0];return ranked.find(l=>l.id===prev.id)||ranked[0]})},[ranked]);const hot=ranked.filter(l=>l.lead_score>=70).length,warm=ranked.filter(l=>l.lead_score>=40&&l.lead_score<70).length,cold=ranked.filter(l=>l.lead_score<40).length,active=ranked.filter(l=>Date.now()-new Date(l.last_seen_at).getTime()<15*60*1000).length;return <main className="crmDark"><aside className="sideRail"><div className="sideBrand"><b>JON ROVER</b><span>DRIVEN BY PEOPLE</span></div><nav><button className={view==='orbit'?'active':''} onClick={()=>setView('orbit')}><i>◎</i><span>Orbit<small>See intent</small></span></button><button className={view==='chats'?'active':''} onClick={()=>setView('chats')}><i>▢</i><span>Live Chats<small>Talk in real time</small></span>{active>0&&<em>{active}</em>}</button><button onClick={()=>setView('leads')} className={view==='leads'?'active':''}><i>↗</i><span>Pipeline<small>Sales flow</small></span></button><a href="/crm/deals" style={{display:'flex',alignItems:'center',gap:12,textDecoration:'none',color:'inherit'}}><i>▤</i><span>Deal Checks<small>Uploaded deal sheets</small></span></a><button><i>✓</i><span>Tasks<small>Stay on track</small></span></button><button onClick={()=>setView('leads')}><i>♙</i><span>Customers<small>Your database</small></span></button><button><i>⌁</i><span>Analytics<small>Track performance</small></span></button><button><i>▣</i><span>Inventory<small>Link to stock</small></span></button></nav><div className="sideJon"><div>JR</div><span>Jon Rover<small>JLR Willow Grove</small></span></div></aside><section className="crmMain"><header className="topBar"><div className="roverStatus"><i/> ROVER <small>AI SHOPPING ASSISTANT</small></div><div className="crmSearch">⌕ <span>Search customers, VINs, or chats…</span></div><a href="/">LIVE SITE ↗</a></header>{view==='orbit'&&<><section className="darkHero"><div className="heroMetrics"><article><strong>{leads.length}</strong><span>TOTAL LEADS</span></article><article><b>{hot}</b><span>HOT</span><b>{warm}</b><span>WARM</span><b>{cold}</b><span>COLD</span></article></div></section><section className="commandGrid"><div className="orbitPanel"><div className="orbitRing rr1"/><div className="orbitRing rr2"/><div className="orbitRing rr3"/><div className="orbitRing rr4"/><div className="orbitCore"><span>JON</span><small>HOT ZONE</small></div><label className="zone zCold">COLD</label><label className="zone zWarm">WARM</label><label className="zone zHot">HOT</label>{ranked.map((l,i)=><button key={l.id} style={pos(l,i,ranked.length)} onClick={()=>setSelected(l)} className={`orb ${l.temperature||''} ${selected?.id===l.id?'selected':''}`}><i/><span>{l.lead_score}</span></button>)}{!leads.length&&<div className="emptyOrbit">{error||'Waiting for shoppers…'}</div>}</div><aside className="activityPanel"><h3>RECENT ACTIVITY</h3>{ranked.slice(0,7).map(l=><button key={l.id} onClick={()=>setSelected(l)}><i className={l.temperature}/><span><b>{contactIdentity(l)}</b><small>{l.last_request||'Browsing inventory'} · {ago(l.last_seen_at)} ago</small></span><strong>{l.lead_score}</strong></button>)}</aside></section><ChatCommand ranked={ranked} selected={selected} setSelected={setSelected}/></>}{view==='chats'&&<section className="fullChats"><ChatCommand ranked={ranked} selected={selected} setSelected={setSelected}/></section>}{view==='leads'&&<section className="darkLeads"><header><h1>Customers</h1><span>{leads.length} PEOPLE</span></header>{ranked.map(l=><button key={l.id} onClick={()=>setSelected(l)}><span className={`score ${l.temperature}`}>{l.lead_score}</span><div><b>{l.name||'Name not captured'}</b><small>{[l.phone,l.email].filter(Boolean).join(' · ')||'No contact details captured'}</small></div><div><b>{l.desired_models?.join(', ')||'—'}</b><small>{l.budget_max?`Up to $${l.budget_max.toLocaleString()}`:'Budget unknown'}</small></div><div><b>{l.next_best_action||'Review conversation'}</b></div><em>{l.status}</em></button>)}</section>}</section></main>}
-function ChatCommand({ranked,selected,setSelected}:{ranked:Lead[],selected:Lead|null,setSelected:(l:Lead)=>void}){return <section className="chatCommand"><div className="rankedChats"><header><h2>Live AI Chats</h2><span>● {ranked.filter(l=>Date.now()-new Date(l.last_seen_at).getTime()<15*60*1000).length} active</span></header><div className="chatTabs">ALL &nbsp;&nbsp; HOT &nbsp;&nbsp; WARM &nbsp;&nbsp; COLD</div>{ranked.slice(0,8).map(l=><button key={l.id} className={selected?.id===l.id?'active':''} onClick={()=>setSelected(l)}><span className={`chatScore ${l.temperature}`}>{l.lead_score}</span><div><b>{l.name||who(l)}</b><small>{[l.phone,l.email].filter(Boolean).join(' · ')||l.desired_models?.[0]||'Shopping'}</small><p>{conversationBrief(l)}</p></div><time>{ago(l.last_seen_at)}</time></button>)}</div><div className="conversation">{selected?<><header><div><h2>{selected.name||who(selected)}</h2><small>{[selected.phone,selected.email].filter(Boolean).join(' · ')||'No contact details captured'}</small></div><span className={`intent ${selected.temperature}`}>{selected.lead_score} INTENT</span>{selected.phone&&<a href={`tel:${selected.phone}`}>CALL</a>}<button onClick={async()=>{if(!window.confirm(`Delete ${who(selected)}? This cannot be undone.`))return;const r=await fetch(`/api/crm?id=${encodeURIComponent(selected.id)}`,{method:'DELETE'});if(r.ok){window.location.reload();}else{const d=await r.json().catch(()=>({}));window.alert(d.error||'Could not delete customer.');}}} style={{border:'1px solid #e2b7b2',background:'#fff7f6',color:'#b43e34',borderRadius:999,padding:'9px 12px',fontSize:7,cursor:'pointer'}}>DELETE</button></header><div className="conversationBrief"><span>ROVER BRIEF</span><p>{conversationBrief(selected)}</p></div><div className="messages">{selected.transcript?.length?selected.transcript.map((m:any,i:number)=><div key={i} className={`message ${m.role}`}><small>{m.role==='assistant'?'ROVER':'SHOPPER'}</small><p>{m.content}</p></div>):<div className="noChat">No messages captured yet.</div>}</div><footer className="compactFooter"><div><span>NEXT MOVE</span><p>{selected.next_best_action||'Make personal contact and advance the sale.'}</p></div>{selected.phone&&<a href={`sms:${selected.phone}`}>TAKE OVER →</a>}</footer></>:<div className="noChat">Select a conversation.</div>}</div></section>}
+import { useEffect, useMemo, useState } from "react";
+
+type Lead = {
+  id: string;
+  name?: string;
+  phone?: string;
+  email?: string;
+  status?: string;
+  last_seen_at: string;
+  last_request?: string;
+  desired_models?: string[];
+  budget_max?: number;
+};
+
+const who = (lead: Lead) =>
+  lead.name?.trim() || lead.phone?.trim() || lead.email?.trim() || "Anonymous shopper";
+
+const ago = (date: string) => {
+  const seconds = Math.max(1, Math.floor((Date.now() - new Date(date).getTime()) / 1000));
+  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return `${Math.floor(seconds / 86400)}d ago`;
+};
+
+const interest = (lead: Lead) => {
+  if (lead.desired_models?.length) return lead.desired_models.join(", ");
+  return lead.last_request || "—";
+};
+
+export default function CRM() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [query, setQuery] = useState("");
+  const [error, setError] = useState("");
+
+  async function load() {
+    const response = await fetch("/api/crm", { cache: "no-store" });
+    const data = await response.json();
+    if (!response.ok) {
+      setError(data.error || "Could not load leads.");
+      return;
+    }
+    setLeads(data.leads || []);
+    setError("");
+  }
+
+  useEffect(() => {
+    load();
+    const timer = setInterval(load, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return [...leads]
+      .sort(
+        (a, b) =>
+          new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime()
+      )
+      .filter((lead) => {
+        if (!q) return true;
+        return [
+          lead.name,
+          lead.phone,
+          lead.email,
+          lead.status,
+          lead.last_request,
+          ...(lead.desired_models || []),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(q);
+      });
+  }, [leads, query]);
+
+  async function removeLead(lead: Lead) {
+    if (!window.confirm(`Delete ${who(lead)}? This cannot be undone.`)) return;
+
+    const response = await fetch(`/api/crm?id=${encodeURIComponent(lead.id)}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      window.alert(data.error || "Could not delete lead.");
+      return;
+    }
+
+    setLeads((current) => current.filter((item) => item.id !== lead.id));
+  }
+
+  return (
+    <main className="crmListPage">
+      <header className="crmListHeader">
+        <div>
+          <a href="/" className="crmBrand">JON ROVER</a>
+          <h1>CRM</h1>
+          <p>{leads.length} {leads.length === 1 ? "lead" : "leads"}</p>
+        </div>
+
+        <input
+          className="crmSearchInput"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search leads..."
+          aria-label="Search leads"
+        />
+      </header>
+
+      {error && <div className="crmError">{error}</div>}
+
+      <section className="crmLeadList">
+        <div className="crmLeadHead">
+          <span>Name</span>
+          <span>Phone</span>
+          <span>Email</span>
+          <span>Interest</span>
+          <span>Last activity</span>
+          <span>Status</span>
+          <span />
+        </div>
+
+        {filtered.map((lead) => (
+          <div className="crmLeadRow" key={lead.id}>
+            <strong>{lead.name || "Name not captured"}</strong>
+
+            <span>
+              {lead.phone ? <a href={`tel:${lead.phone}`}>{lead.phone}</a> : "—"}
+            </span>
+
+            <span className="crmEmail">
+              {lead.email ? <a href={`mailto:${lead.email}`}>{lead.email}</a> : "—"}
+            </span>
+
+            <span className="crmInterest">
+              <b>{interest(lead)}</b>
+              {lead.budget_max ? (
+                <small>Up to ${lead.budget_max.toLocaleString()}</small>
+              ) : null}
+            </span>
+
+            <span>{ago(lead.last_seen_at)}</span>
+
+            <span className="crmStatus">{lead.status || "Lead"}</span>
+
+            <button
+              className="crmDelete"
+              onClick={() => removeLead(lead)}
+              aria-label={`Delete ${who(lead)}`}
+            >
+              Delete
+            </button>
+          </div>
+        ))}
+
+        {!filtered.length && !error && (
+          <div className="crmEmpty">
+            {query ? "No leads match that search." : "No leads yet."}
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}
