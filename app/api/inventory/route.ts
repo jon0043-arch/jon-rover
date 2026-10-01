@@ -32,8 +32,8 @@ export async function GET(request:NextRequest){
   const limit=browse?Math.min(Math.max(requestedLimit,1),250):Math.min(Math.max(requestedLimit,1),18);
   try{
     const bundled=fetchBundledInventory();
-    const saved=await fetchSavedInventory();
-    const marketInventory=mergeInventory(saved,bundled);
+    const saved=bundled.length ? [] : await fetchSavedInventory();
+    const marketInventory=bundled.length ? bundled : saved;
     const withProjection=(v:Vehicle)=>({...v,price:advertisedPrice(v.price),docFeeIncluded:DOC_FEE,equityGuard:projectDepreciation(v,marketInventory)});
     let unique=[...marketInventory];
     if(condition==="new")unique=unique.filter(v=>v.condition.toLowerCase()==="new");
@@ -41,12 +41,12 @@ export async function GET(request:NextRequest){
     let candidates=unique;
     const model=requestedModel(q);if(model)candidates=candidates.filter(v=>modelMatches(v,model));
     const budget=parseBudget(q);if(budget!=null)candidates=candidates.filter(v=>{const p=advertisedPrice(v.price);return p!=null&&p<=budget+10000;});
-    if(browse){const vehicles=candidates.slice(0,limit).map(withProjection);return NextResponse.json({total:candidates.length,count:vehicles.length,query:q,condition,vehicles,source:"Jon Rover enriched inventory snapshot",syncMethod:saved.length?"database-authoritative-v2":"snapshot-fallback",updatedAt:bundledSnapshot.fetchedAt||null});}
+    if(browse){const vehicles=candidates.slice(0,limit).map(withProjection);return NextResponse.json({total:candidates.length,count:vehicles.length,query:q,condition,vehicles,source:"Jon Rover enriched inventory snapshot",syncMethod:bundled.length?"snapshot-authoritative-v3":"database-fallback",updatedAt:bundledSnapshot.fetchedAt||null});}
     const color=requestedColor(q);
     let vehicles=candidates.map(vehicle=>({vehicle,score:score(vehicle,q)})).sort((a,b)=>b.score-a.score||(a.vehicle.price??Infinity)-(b.vehicle.price??Infinity)).slice(0,color?Math.min(candidates.length,40):limit).map(x=>x.vehicle);
     if(color){const matching=vehicles.filter(v=>colorMatches(v,color));if(matching.length>=3)vehicles=matching;else if(matching.length)vehicles=[...matching,...vehicles.filter(v=>!colorMatches(v,color))];}
     vehicles=vehicles.slice(0,limit);
     const projected=vehicles.map(withProjection);
-    return NextResponse.json({total:candidates.length,count:projected.length,query:q,condition,vehicles:projected,source:"Jon Rover enriched inventory snapshot",syncMethod:saved.length?"database-authoritative-v2":"snapshot-fallback",updatedAt:bundledSnapshot.fetchedAt||null});
+    return NextResponse.json({total:candidates.length,count:projected.length,query:q,condition,vehicles:projected,source:"Jon Rover enriched inventory snapshot",syncMethod:bundled.length?"snapshot-authoritative-v3":"database-fallback",updatedAt:bundledSnapshot.fetchedAt||null});
   }catch(e){console.error("Inventory route failed",e);return NextResponse.json({error:"Live inventory is temporarily unavailable."},{status:502})}
 }
