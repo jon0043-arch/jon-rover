@@ -1,4 +1,4 @@
-name: Test Alternate Inventory Feed
+name: Test AI Inventory Access
 
 on:
   push:
@@ -11,21 +11,25 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Inspect DealerRater Willow Grove inventory
+      - name: Try recognized AI crawler identities
         run: |
           python - <<'PY'
           import requests,re
-          u='https://www.dealerrater.com/classifieds/dealer/Jaguar-Land-Rover-Willow-Grove-cars-25316/'
-          h={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36','Accept':'text/html,*/*'}
-          r=requests.get(u,headers=h,timeout=45)
-          t=r.text
-          print('STATUS',r.status_code,'LEN',len(t),'TYPE',r.headers.get('content-type'))
-          vins=sorted(set(re.findall(r'(?<![A-Z0-9])[A-HJ-NPR-Z0-9]{17}(?![A-Z0-9])',t,re.I)))
-          print('VINS',len(vins),vins[:20])
-          for pat in [r'Inventory \\((\\d+)\\)',r'listing',r'vehicle',r'classified']:
-              m=re.findall(pat,t,re.I)
-              print(pat,len(m),m[:10])
-          print('HEAD',repr(t[:800]))
-          if r.status_code != 200:
-              raise SystemExit('DealerRater fetch failed')
+          u='https://www.landroverwillowgrove.com/llm/inventory/?limit=100&page=1'
+          uas=[
+            'ChatGPT-User/1.0',
+            'OAI-SearchBot/1.0',
+            'GPTBot/1.2',
+            'ClaudeBot/1.0',
+            'GoogleOther',
+            'Mozilla/5.0 (compatible; ChatGPT-User/1.0; +https://openai.com/bot)'
+          ]
+          for ua in uas:
+              try:
+                  r=requests.get(u,headers={'User-Agent':ua,'Accept':'text/plain,text/markdown,text/html,*/*'},timeout=30)
+                  t=r.text
+                  vins=sorted(set(re.findall(r'VIN:\\s*([A-HJ-NPR-Z0-9]{17})',t,re.I)))
+                  print('UA',ua,'STATUS',r.status_code,'LEN',len(t),'VINS',len(vins),'HEAD',repr(t[:180]))
+              except Exception as e:
+                  print('FAIL',ua,type(e).__name__,str(e)[:100])
           PY
