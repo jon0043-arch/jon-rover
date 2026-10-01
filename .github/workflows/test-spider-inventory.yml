@@ -1,0 +1,37 @@
+name: Test Public Inventory Scraper
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/test-spider-inventory.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Dealer Inspire inventory through scraper
+        run: |
+          set -e
+          python - <<'PY'
+          import json, re, requests
+          url='https://www.landroverwillowgrove.com/llm/inventory/?limit=100&page=1'
+          r=requests.post(
+              'https://api.spider.cloud/scrape',
+              headers={'Content-Type':'application/json'},
+              json={'url':url,'return_format':'markdown'},
+              timeout=90
+          )
+          print('STATUS', r.status_code, 'LEN', len(r.text))
+          print('HEAD', repr(r.text[:1000]))
+          try:
+              data=r.json()
+              blob=json.dumps(data)
+          except Exception:
+              blob=r.text
+          vins=sorted(set(re.findall(r'\b[A-HJ-NPR-Z0-9]{17}\b', blob, re.I)))
+          print('VINS', len(vins), vins[:10])
+          if len(vins) < 10:
+              raise SystemExit('Scraper did not return usable inventory')
+          PY
