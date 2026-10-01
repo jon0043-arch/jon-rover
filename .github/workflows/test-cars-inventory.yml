@@ -1,4 +1,4 @@
-name: Test Cars.com Inventory Feed
+name: Test Alternate Inventory Feed
 
 on:
   push:
@@ -11,21 +11,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Inspect Cars.com Willow Grove inventory
+      - name: Inspect DealerRater Willow Grove inventory
         run: |
           python - <<'PY'
           import requests,re
-          u='https://www.cars.com/dealers/5378273/jaguar-land-rover-of-willow-grove/inventory/'
+          u='https://www.dealerrater.com/classifieds/dealer/Jaguar-Land-Rover-Willow-Grove-cars-25316/'
           h={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128 Safari/537.36','Accept':'text/html,*/*'}
           r=requests.get(u,headers=h,timeout=45)
           t=r.text
           print('STATUS',r.status_code,'LEN',len(t),'TYPE',r.headers.get('content-type'))
-          vins=sorted(set(re.findall(r'\\b[A-HJ-NPR-Z0-9]{17}\\b',t,re.I)))
+          vins=sorted(set(re.findall(r'(?<![A-Z0-9])[A-HJ-NPR-Z0-9]{17}(?![A-Z0-9])',t,re.I)))
           print('VINS',len(vins),vins[:20])
-          for pat in [r'(\\d+) vehicles for sale',r'page_count',r'total_results',r'listing_id']:
+          for pat in [r'Inventory \\((\\d+)\\)',r'listing',r'vehicle',r'classified']:
               m=re.findall(pat,t,re.I)
               print(pat,len(m),m[:10])
           print('HEAD',repr(t[:800]))
           if r.status_code != 200:
-              raise SystemExit('Cars.com fetch failed')
+              raise SystemExit('DealerRater fetch failed')
           PY
