@@ -1,8 +1,8 @@
 {
   "source": "Jaguar Land Rover Willow Grove syndicated inventory",
-  "expected": 205,
-  "count": 205,
-  "fetchedAt": "2026-10-05T14:36:22.345268+00:00",
+  "expected": 206,
+  "count": 206,
+  "fetchedAt": "2026-10-07T13:21:45.096432+00:00",
   "vehicles": [
     {
       "vin": "SALCL2FX6TH380576",
@@ -7617,6 +7617,25 @@
       "year": 2024,
       "make": "Chevrolet",
       "model": "Tahoe",
+      "trim": null
+    },
+    {
+      "vin": "SALEJ7EX1T2617586",
+      "title": "2026 Land Rover Defender",
+      "condition": "Used",
+      "mileage": 9642,
+      "price": 0,
+      "url": "https://www.landroverwillowgrove.com/?s=SALEJ7EX1T2617586",
+      "image": null,
+      "images": [],
+      "stock": "R26554A",
+      "exterior": "N/A",
+      "interior": "N/A",
+      "interiorFamily": null,
+      "features": [],
+      "year": 2026,
+      "make": "Land Rover",
+      "model": "Defender",
       "trim": null
     }
   ]
