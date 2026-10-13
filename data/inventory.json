@@ -1,8 +1,8 @@
 {
   "source": "Jaguar Land Rover Willow Grove syndicated inventory",
-  "expected": 202,
-  "count": 202,
-  "fetchedAt": "2026-10-12T15:22:58.199471+00:00",
+  "expected": 201,
+  "count": 201,
+  "fetchedAt": "2026-10-13T14:10:17.070809+00:00",
   "vehicles": [
     {
       "vin": "SALCL2FX6TH380576",
@@ -2999,46 +2999,6 @@
       "year": 2023,
       "make": "Land Rover",
       "model": "Range Rover Sport",
-      "trim": null
-    },
-    {
-      "vin": "SALYJ2EX3TA827886",
-      "title": "2026 Land Rover Range Rover Velar",
-      "condition": "Used",
-      "mileage": 6799,
-      "price": 60480,
-      "url": "https://www.landroverwillowgrove.com/inventory/certified-used-2026-land-rover-range-rover-velar-s-awd-4d-sport-utility-salyj2ex3ta827886/",
-      "image": "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/ITyoz8x04RrCslm0gtAdqEofzgc.jpg",
-      "images": [
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/ITyoz8x04RrCslm0gtAdqEofzgc.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/Wu2FWbduAOUu3dEbTd3OW8dNGt8.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/aMzJzxI2_5nhQeF5LopGDvBSIiE.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/mVu40f-yTI0mnExAOxp24oOqi28.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/pUSMJhLPWcj0R960MiVWe03uNs4.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/riAaKApQbZRGiQs_rEjfRty7S5w.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/K4exzsDSVG244H87njIP188pQn0.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/-WvruzY3JodzW3nbFO0zaOxK2i8.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/IwZkJpxE3PSJP2klxeONHye1L2Q.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/RKJkJoMTsp5IPdC5FXgu1qZRcmI.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/lk13xHZU4LM9lGAtaNE7g0ROA5I.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/j7uV28ZUzmpxCilE4werNktU-U0.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/bpI_sner5yLp3hjnLiWa3a9JciA.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/XUxMm8eUAn9PJcUJZvX9KnSbbWo.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/h5knl6MQAm1hlANCOTaNSmBZ33s.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/qDSvmcRXkWqhEp4JFiNFe-m6s90.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/OCeyqA4Oije6kYLq-bkWb7ueZaY.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/jKxSG6lX712kqjGAbHj7pHC2Ntg.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/mY7j2MIhf5MXslUjSivc_DdxVdg.jpg",
-        "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/0e15b9ce-52d5-491f-928b-2345ad4328a2/1-0kZmApG7X5TsDBFKpTsOSZlOY.jpg"
-      ],
-      "stock": "SR26073",
-      "exterior": "Batumi Gold Premium Metallic - 1DM",
-      "interior": "Cloud/Ebony - 304QC",
-      "interiorFamily": "off-white",
-      "features": [],
-      "year": 2026,
-      "make": "Land Rover",
-      "model": "Range Rover Velar",
       "trim": null
     },
     {
