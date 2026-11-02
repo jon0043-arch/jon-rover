@@ -2,7 +2,7 @@
   "source": "Jaguar Land Rover Willow Grove syndicated inventory",
   "expected": 189,
   "count": 189,
-  "fetchedAt": "2026-11-01T13:21:50.595336+00:00",
+  "fetchedAt": "2026-11-02T15:49:09.405351+00:00",
   "vehicles": [
     {
       "vin": "SALCL2FX0TH380928",
@@ -2709,7 +2709,7 @@
       "vin": "SALKP9FU3PA036720",
       "title": "2023 Land Rover Range Rover",
       "condition": "Used",
-      "mileage": 35980,
+      "mileage": 35981,
       "price": 79980,
       "url": "https://www.landroverwillowgrove.com/inventory/certified-used-2023-land-rover-range-rover-p400-se-awd-4d-sport-utility-salkp9fu3pa036720/",
       "image": "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/f204b625-3b7e-4853-949b-9e73d0088407/8KaP_nxPcPoaOX7AlZpFLflE0ts.jpg",
@@ -2775,7 +2775,7 @@
       "title": "2023 Land Rover Range Rover",
       "condition": "Used",
       "mileage": 37728,
-      "price": 88480,
+      "price": 84480,
       "url": "https://www.landroverwillowgrove.com/inventory/certified-used-2023-land-rover-range-rover-p400-se-awd-4d-sport-utility-salkp9fu1pa038899/",
       "image": "https://platform.cstatic-images.com:443/xxlarge/in/v2/ff9a2a2a-323d-5d4b-8db5-d8b484373fd4/a0d70aaf-32a4-4d1c-a643-7c3f9eea9ae1/jcdEGfg3b0HdH0pTJrrXkyDn_hc.jpg",
       "images": [
