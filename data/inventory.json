@@ -1,8 +1,8 @@
 {
   "source": "Jaguar Land Rover Willow Grove syndicated inventory",
-  "expected": 186,
-  "count": 186,
-  "fetchedAt": "2026-11-03T14:11:37.099421+00:00",
+  "expected": 188,
+  "count": 188,
+  "fetchedAt": "2026-11-04T19:44:25.524241+00:00",
   "vehicles": [
     {
       "vin": "SALCL2FX0TH380928",
@@ -6801,7 +6801,7 @@
       "title": "2025 Land Rover Defender",
       "condition": "Used",
       "mileage": 16286,
-      "price": 0,
+      "price": 58480,
       "url": "https://www.landroverwillowgrove.com/?s=SALEJ7EX2S2357097",
       "image": null,
       "images": [],
@@ -6813,6 +6813,44 @@
       "year": 2025,
       "make": "Land Rover",
       "model": "Defender",
+      "trim": null
+    },
+    {
+      "vin": "SALWV2SE3NA223207",
+      "title": "2022 Land Rover Range Rover Sport",
+      "condition": "Used",
+      "mileage": 31345,
+      "price": 60480,
+      "url": "https://www.landroverwillowgrove.com/?s=SALWV2SE3NA223207",
+      "image": null,
+      "images": [],
+      "stock": "R26565A",
+      "exterior": "N/A",
+      "interior": "N/A",
+      "interiorFamily": null,
+      "features": [],
+      "year": 2022,
+      "make": "Land Rover",
+      "model": "Range Rover Sport",
+      "trim": null
+    },
+    {
+      "vin": "1GYS4FKL1PR484977",
+      "title": "2023 Cadillac Escalade",
+      "condition": "Used",
+      "mileage": 40688,
+      "price": 0,
+      "url": "https://www.landroverwillowgrove.com/?s=1GYS4FKL1PR484977",
+      "image": null,
+      "images": [],
+      "stock": "R27017A",
+      "exterior": "Radiant Red Tintcoat",
+      "interior": "Brandy w/Very Dark Atmosphere Accents",
+      "interiorFamily": null,
+      "features": [],
+      "year": 2023,
+      "make": "Cadillac",
+      "model": "Escalade",
       "trim": null
     }
   ]
