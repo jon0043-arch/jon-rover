@@ -1,52 +1,87 @@
-"use client";
-
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import InventoryBrowser from "./InventoryBrowser";
-import FeaturedVehicles from "./FeaturedVehicles";
-import Concierge from "./Concierge";
 import TextJon from "./TextJon";
+import "./jon-home.css";
 
-gsap.registerPlugin(ScrollTrigger);
-const JON_TEXT_NUMBER="+12156087408";
-const JON_CALL_NUMBER="tel:+16092218478";
-const JON_CALL_DISPLAY="609-221-8478";
-const GENERAL_SMS=`sms:${JON_TEXT_NUMBER}?body=${encodeURIComponent("Hi Jon, I found you through Jon Rover and wanted some help finding a vehicle.")}`;
-const reviews=[{quote:"Very knowledgeable and excellent communicator!",source:"Customer review · December 2025"},{quote:"He was attentive and patient.",source:"Customer review · April 2025"},{quote:"Definitely the best experience we've ever had at a dealership.",source:"Customer review · June 2025"},{quote:"Friendly, knowledgeable and efficient service from Jon.",source:"Customer review · September 2023"},{quote:"Sales person went above and beyond.",source:"Customer review · May 2024"},{quote:"Fast responses to all correspondences.",source:"Customer review · March 2026"},{quote:"He went above and beyond to make sure my buying experience was smooth and professional.",source:"Customer review"},{quote:"He made the process of car shopping much easier for me.",source:"Customer review"}];
-const modelLinks=[{name:"RANGE ROVER",href:"/range-rover"},{name:"RANGE ROVER SPORT",href:"/range-rover-sport"},{name:"RANGE ROVER VELAR",href:"/range-rover-velar"},{name:"RANGE ROVER EVOQUE",href:"/range-rover-evoque"},{name:"DEFENDER",href:"/defender"},{name:"DISCOVERY SPORT",href:"/discovery-sport"},{name:"JAGUAR",href:"/jaguar"},{name:"CERTIFIED PRE-OWNED",href:"/land-rover-certified-pre-owned"}];
+const textRequest = `sms:+12156087408?body=${encodeURIComponent("Hi Jon, I found JonRover.com and would like to work directly with you on my next vehicle. My name is ")}`;
+const callJon = "tel:+16092218478";
 
-export default function Home(){
-const heroRef=useRef<HTMLElement|null>(null),heroImageRef=useRef<HTMLDivElement|null>(null),heroCopyRef=useRef<HTMLDivElement|null>(null);const[heroRequest,setHeroRequest]=useState(""),[inventoryQuery,setInventoryQuery]=useState(""),[inventorySignal,setInventorySignal]=useState(0),[mobileMenuOpen,setMobileMenuOpen]=useState(false);
-useEffect(()=>{const ctx=gsap.context(()=>{gsap.to(heroImageRef.current,{yPercent:10,scale:1.05,ease:"none",scrollTrigger:{trigger:heroRef.current,start:"top top",end:"bottom top",scrub:true}});gsap.to(heroCopyRef.current,{yPercent:-12,opacity:.3,ease:"none",scrollTrigger:{trigger:heroRef.current,start:"25% top",end:"90% top",scrub:true}});});return()=>ctx.revert();},[]);
-function search(q:string){setInventoryQuery(q);setInventorySignal(v=>v+1);window.setTimeout(()=>document.getElementById("inventory")?.scrollIntoView({behavior:"smooth",block:"start"}),80);}function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();if(heroRequest.trim())search(heroRequest.trim());}
-return <main>
-<style jsx global>{`
-@media(max-width:620px){.heroCopy{padding-top:0!important;transform:translateY(-13vh)!important}}
-.mobileMenuButton,.mobileMenuPanel{display:none}
-@media(max-width:900px){
-.navRoverButton{display:none!important}
-.mobileMenuButton{display:flex;position:relative;z-index:31;width:46px;height:46px;border:0;background:transparent;padding:0;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer}
-.mobileMenuButton span{display:block;width:28px;height:1.5px;background:#101513;transition:transform .25s ease,opacity .2s ease}
-.mobileMenuButton.open span:first-child{transform:translateY(4.75px) rotate(45deg)}
-.mobileMenuButton.open span:last-child{transform:translateY(-4.75px) rotate(-45deg)}
-.mobileMenuPanel{display:flex;position:fixed;inset:0;z-index:30;background:#f2eee6;color:#101513;padding:120px 28px 42px;flex-direction:column;justify-content:space-between;transform:translateY(-100%);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.22,.8,.25,1),opacity .25s ease}
-.mobileMenuPanel.open{transform:translateY(0);opacity:1;pointer-events:auto}
-.mobileMenuLinks{display:flex;flex-direction:column;border-top:1px solid rgba(16,21,19,.18)}
-.mobileMenuLinks a{display:flex;align-items:center;justify-content:space-between;min-height:55px;border-bottom:1px solid rgba(16,21,19,.18);font-size:15px;font-weight:300;letter-spacing:.14em}
-.mobileMenuLinks a:after{content:'→';font-size:18px;font-weight:300}
-.mobileMenuBottom{display:flex;gap:12px}
-.mobileMenuBottom a{flex:1;min-height:50px;display:flex;align-items:center;justify-content:center;border:1px solid #101513;font-size:9px;letter-spacing:.18em}
-.mobileMenuBottom a:first-child{background:#101513;color:#fff}
-}
-`}</style>
-<section ref={heroRef} className="hero" id="home"><div ref={heroImageRef} className="heroImage"><picture><source media="(max-width: 620px)" srcSet="/hero-mobile.PNG"/><img src="/hero-defender.png" alt="Land Rover Defender overlooking the mountains"/></picture></div><div className="heroShade"/><header className="nav shell"><a href="#home" className="brandLockup"><span className="brand">JON ROVER</span><span className="eyebrow">JAGUAR LAND ROVER WILLOW GROVE</span></a><nav className="desktopNav"><div className="brandNavGroup"><a className="brandNavTrigger" href="/range-rover">LAND ROVER <span>⌄</span></a><div className="brandDropdown"><a href="/range-rover">RANGE ROVER</a><a href="/range-rover-sport">RANGE ROVER SPORT</a><a href="/range-rover-velar">RANGE ROVER VELAR</a><a href="/range-rover-evoque">RANGE ROVER EVOQUE</a><a href="/defender">DEFENDER</a><a href="/discovery-sport">DISCOVERY SPORT</a><a href="/land-rover-certified-pre-owned">CERTIFIED PRE-OWNED</a></div></div><a href="/jaguar">JAGUAR</a><a href="#featured">FEATURED</a><a href="#inventory">INVENTORY</a><a href="/deal-check">DEAL CHECK</a><a href="/section-179-vehicle-calculator">SECTION 179</a><a href="#reviews">REVIEWS</a><a href="/blog">BLOG</a><a href="#about">ABOUT</a></nav><a className="pill dark navRoverButton" href={JON_CALL_NUMBER}>CALL JON</a><button className={`mobileMenuButton ${mobileMenuOpen?"open":""}`} type="button" aria-label={mobileMenuOpen?"Close menu":"Open menu"} aria-expanded={mobileMenuOpen} onClick={()=>setMobileMenuOpen(v=>!v)}><span/><span/></button></header><div className={`mobileMenuPanel ${mobileMenuOpen?"open":""}`}><div className="mobileMenuLinks"><a href="#inventory" onClick={()=>setMobileMenuOpen(false)}>INVENTORY</a><a href="#featured" onClick={()=>setMobileMenuOpen(false)}>FEATURED</a><a href="/deal-check">DEAL CHECK</a><a href="/section-179-vehicle-calculator">SECTION 179</a><a href="/blog">BLOG</a><a href="#about" onClick={()=>setMobileMenuOpen(false)}>ABOUT JON</a></div><div className="mobileMenuBottom"><a href={JON_CALL_NUMBER}>CALL JON</a><TextJon href={GENERAL_SMS}>TEXT JON</TextJon></div></div><div ref={heroCopyRef} className="heroCopy shell"><p className="eyebrow heroKicker">A MORE PERSONAL WAY TO BUY</p><h1>DRIVEN<br/>BY<br className="mobileBreak"/> PEOPLE.</h1><p className="heroLead">Tell me what you want. I&apos;ll narrow the live Willow Grove inventory down to the three I&apos;d look at first.</p><form className="heroVehicleSearch" onSubmit={submit}><div className="heroVehicleSearchBar"><input value={heroRequest} onChange={e=>setHeroRequest(e.target.value)} placeholder="What vehicle are you looking for?" aria-label="What vehicle are you looking for?"/><button type="submit" aria-label="Find my matches">→</button></div></form><div className="heroDealAction"><a href="/deal-check">CHECK MY DEAL <b>→</b></a></div></div><img className="heroJonDesktop" src="/jon-desktop.png" alt="Jon McGeehan"/><img className="heroJonPointing" src="/jon-pointing.PNG" alt="Jon McGeehan pointing toward the search box"/><div className="mobileScrollCue"><span/>SCROLL</div></section>
-<section className="mobileModelNav" aria-labelledby="shop-model-title"><div className="mobileModelNavInner"><p className="eyebrow" id="shop-model-title">SHOP BY MODEL</p><div className="mobileModelScroller">{modelLinks.map(model=><a className="mobileModelCard" href={model.href} key={model.href}><span>{model.name}</span><b aria-hidden="true">→</b></a>)}</div></div></section>
-<FeaturedVehicles/>
-<InventoryBrowser initialQuery={inventoryQuery} requestSignal={inventorySignal}/>
-<section className="homeDealCheck"><div className="homeDealCheckVisual"><img src="/rangeroversport-hero.png" alt="Range Rover Sport"/><div className="homeDealCheckVisualShade"/><div className="homeDealCheckStamp"><span>DEAL</span><b>CHECK</b></div></div><div className="homeDealCheckPanel"><p className="eyebrow">ALREADY HAVE A QUOTE?</p><h2>LET&apos;S<br/>CHECK IT.</h2><p className="homeDealCheckLead">Upload a screenshot of the deal you were given. I&apos;ll break down the numbers and give you a simple second opinion before you sign.</p><div className="homeDealCheckPoints"><span>PRICING</span><span>FEES</span><span>TRADE</span><span>FINANCING</span></div><a className="homeDealCheckButton" href="/deal-check"><span>CHECK MY DEAL</span><b>→</b></a><small>NO FORMS TO FILL OUT · JUST UPLOAD THE SCREENSHOT</small></div></section>
-<section className="shell" style={{padding:"72px 0"}}><div style={{borderTop:"1px solid rgba(20,20,20,.2)",borderBottom:"1px solid rgba(20,20,20,.2)",padding:"42px 0",display:"grid",gap:"14px"}}><p className="eyebrow">BUSINESS OWNER?</p><h2 style={{fontSize:"clamp(34px,5vw,64px)",lineHeight:.95,margin:0}}>SECTION 179<br/>VEHICLE CALCULATOR</h2><p style={{maxWidth:"650px",margin:0}}>See an educational estimate of the potential Section 179 deduction for a qualifying Range Rover, Range Rover Sport, Defender, Discovery or other vehicle.</p><div><a className="pill dark" href="/section-179-vehicle-calculator">CALCULATE YOUR ESTIMATE →</a></div><small>Estimate only. Not tax or accounting advice. Contact a qualified accountant or tax professional to confirm eligibility and potential deductions.</small></div></section>
-<section id="reviews" className="reviewsSection" aria-labelledby="reviews-title"><div className="reviewsHeader shell"><div className="reviewsTop"><div><p className="eyebrow">WHAT CUSTOMERS SAY</p><h2 id="reviews-title">A better experience, in their words.</h2></div><div className="reviewStars">★★★★★</div></div></div><div className="reviewsMarquee"><div className="reviewsTrack">{[...reviews,...reviews].map((r,i)=><article className="reviewCard" key={`${r.quote}-${i}`}><div className="reviewCardStars">★★★★★</div><blockquote>“{r.quote}”</blockquote><p>{r.source}</p></article>)}</div></div></section>
-<section id="about" className="personalAbout"><div className="personalAboutInner shell"><div className="personalPortraitWrap"><img className="personalPortrait" src="/jon-bio.PNG" alt="Jon McGeehan"/></div><div className="personalAboutCopy"><p className="eyebrow">ABOUT JON</p><h2>Jon McGeehan</h2><p className="personalRole">SALES GUIDE · JAGUAR LAND ROVER WILLOW GROVE</p><p className="personalIntro">I&apos;ve spent years helping people find the right Jaguar or Land Rover without making the process feel like a typical car-buying experience. Tell me what matters to you and I&apos;ll give you straight answers and help narrow down the right options.</p><p style={{marginTop:"18px",fontSize:"13px",letterSpacing:".08em"}}>CALL JON · <a href={JON_CALL_NUMBER} style={{color:"inherit",textDecoration:"none"}}>{JON_CALL_DISPLAY}</a></p><div className="personalAboutActions"><TextJon className="button dark" href={GENERAL_SMS}>TEXT JON →</TextJon><a className="textLink" href={JON_CALL_NUMBER}>CALL JON →</a><button className="textLink inventoryTextButton" type="button" onClick={()=>search("")}>VIEW INVENTORY →</button></div></div></div></section>
-<footer className="footer shell"><div><div className="brand">JON ROVER</div><div className="eyebrow">JAGUAR LAND ROVER WILLOW GROVE</div></div><p><a href={JON_CALL_NUMBER} style={{color:"inherit",textDecoration:"none"}}>{JON_CALL_DISPLAY}</a></p><div style={{display:"flex",gap:"18px",alignItems:"center",flexWrap:"wrap"}}><a href="/deal-check" style={{fontSize:"10px",letterSpacing:".12em",color:"inherit",textDecoration:"none"}}>DEAL CHECK</a><a href="/section-179-vehicle-calculator" style={{fontSize:"10px",letterSpacing:".12em",color:"inherit",textDecoration:"none"}}>SECTION 179</a><a href="/blog" style={{fontSize:"10px",letterSpacing:".12em",color:"inherit",textDecoration:"none"}}>BLOG</a><a href="/privacy" style={{fontSize:"10px",letterSpacing:".12em",color:"inherit",textDecoration:"none"}}>PRIVACY</a><a href="/terms" style={{fontSize:"10px",letterSpacing:".12em",color:"inherit",textDecoration:"none"}}>TERMS</a><TextJon className="pill dark" href={GENERAL_SMS}>TEXT JON</TextJon></div></footer><Concierge/></main>;
+export default function Home() {
+  return (
+    <main className="jrSite" id="top">
+      <header className="jrTop jrWrap">
+        <a className="jrLogo" href="#top" aria-label="Jon Rover, back to top">JON ROVER</a>
+        <div className="jrTopRight">
+          <span className="jrTopNote">THE PERSONAL SIDE OF AUTOMOTIVE</span>
+          <a className="jrTopButton" href="#contact">WORK WITH JON <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+      <section className="jrIntro" aria-labelledby="hero-title">
+        <div className="jrHero jrWrap">
+          <div className="jrHeroCopy">
+            <p className="jrKicker">JON MCGEEHAN · AUTOMOTIVE SPECIALIST</p>
+            <h1 id="hero-title">YOUR NEXT CAR. <span>MORE PERSONAL.</span></h1>
+            <p className="jrHeroLead">
+              Skip the noise. If you’re considering a Range Rover, Defender, or your next luxury SUV,
+              work directly with someone who knows the vehicles and takes the time to understand you.
+            </p>
+            <div className="jrActions">
+              <a className="jrButton jrButtonPrimary" href="#contact">REQUEST TO WORK WITH JON <span aria-hidden="true">↗</span></a>
+              <a className="jrButton jrButtonSecondary" href="#about">GET TO KNOW ME <span aria-hidden="true">↓</span></a>
+            </div>
+            <p className="jrMicro">No inventory feeds. No complicated process. Just a direct conversation.</p>
+          </div>
+          <div className="jrPhotoWrap">
+            <img className="jrPortrait" src="/jon-bio.PNG" alt="Jon McGeehan, the person behind Jon Rover" />
+            <span className="jrPhotoCorner">A REAL PERSON. A DIRECT CONNECTION.</span>
+            <span className="jrPhotoIndex" aria-hidden="true">01 / THE PERSON BEHIND THE PAGE</span>
+          </div>
+        </div>
+      </section>
+      <div className="jrBand">
+        <div className="jrBandInner jrWrap">
+          <span>PERSONAL SERVICE</span><span>LUXURY SUVs</span><span>STRAIGHT ANSWERS</span><span>PHILADELPHIA + SOUTH JERSEY</span>
+        </div>
+      </div>
+      <section className="jrAbout jrWrap" id="about" aria-labelledby="about-title">
+        <p className="jrLabel">01 / ABOUT JON</p>
+        <div>
+          <h2 id="about-title">The experience should be about you.</h2>
+          <p>I'm <strong>Jon McGeehan</strong> — the voice behind Jon Rover. I spend my days around exceptional vehicles, but what matters most to me is helping people feel confident about a big decision.</p>
+          <p>I share real-world car knowledge online and help people navigate their next vehicle personally. Whether you're just starting to explore or know exactly what you want, <strong>you can talk to me directly.</strong></p>
+          <div className="jrValues">
+            <div><span className="jrNumeral">01</span><h3>REAL ANSWERS</h3><p>Questions are welcome, even when you're not ready to buy.</p></div>
+            <div><span className="jrNumeral">02</span><h3>ONE POINT OF CONTACT</h3><p>Start with a conversation with me, not an automated sales funnel.</p></div>
+            <div><span className="jrNumeral">03</span><h3>A PERSONAL APPROACH</h3><p>We'll focus on what matters to you, not a generic sales pitch.</p></div>
+          </div>
+        </div>
+      </section>
+      <section className="jrContact" id="contact" aria-labelledby="contact-title">
+        <div className="jrContactGrid jrWrap">
+          <div>
+            <p className="jrLabel">02 / THE NEXT STEP</p>
+            <h2 id="contact-title">LET'S FIND YOUR NEXT MOVE.</h2>
+            <p>Looking for a vehicle or simply want advice from someone who works with luxury SUVs every day? Send me a quick text and tell me what you're looking for. I'll take it from there.</p>
+          </div>
+          <div className="jrContactActions">
+            <TextJon href={textRequest} className="jrButton jrButtonPrimary">REQUEST TO WORK WITH JON <span aria-hidden="true">↗</span></TextJon>
+            <a href={callJon} className="jrButton jrButtonSecondary">PREFER TO CALL? <span>609-221-8478 ↗</span></a>
+            <small>On a phone, the request opens your messaging app with a draft text. You choose whether to send it. On desktop, scan the QR code to text me. No inquiry form or database required.</small>
+          </div>
+        </div>
+      </section>
+      <footer className="jrFooter">
+        <div className="jrWrap">
+          <div className="jrFooterTop">
+            <a className="jrLogo" href="#top">JON ROVER</a>
+            <nav className="jrFooterLinks" aria-label="Footer navigation">
+              <a href="#about">ABOUT</a>
+              <a href="#contact">WORK WITH JON</a>
+              <a href="/privacy">PRIVACY</a>
+              <a href="/terms">TERMS</a>
+            </nav>
+          </div>
+          <p className="jrLegalNote">© {new Date().getFullYear()} Jon McGeehan. This is Jon's personal website, not an official website of Jaguar Land Rover or any vehicle retailer. Brand names mentioned are the property of their respective owners. Any vehicle sale or lease is handled through an authorized retailer, subject to its policies and approvals.</p>
+        </div>
+      </footer>
+    </main>
+  );
 }
